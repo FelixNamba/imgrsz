@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>imgrsz — кейс</title>
+<meta name="description" content="Кейс imgrsz: гипотеза, прототип, тест, путь в продакшн, AI harness, архитектура.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230A84FF'/><path d='M28 64V36h44v28z' fill='none' stroke='white' stroke-width='7' stroke-dasharray='10 7'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+<link rel="stylesheet" href="/assets/case.css">
+</head>
+<body>
+<header class="top">
+  <a class="logo" href="/">imgrsz</a>
+  <nav class="chips small" id="nav">
+    <a class="chip" href="#test">тест</a>
+    <a class="chip" href="#prod">продакшн</a>
+    <a class="chip" href="#harness">harness</a>
+    <a class="chip" href="#arch">архитектура</a>
+    <a class="chip accent" href="https://t.me/imgrsz_bot?start=case">бот</a>
+  </nav>
+</header>
+
+<main class="case">
+  <h1 class="center">Кейс imgrsz</h1>
+  <p class="lead center">AI-продукт за один день: от гипотезы до живых пользователей. Нажмите <span class="q-inline">?</span>, чтобы раскрыть детали.</p>
+
+  <section class="stats" aria-live="polite">
+    <div class="stat"><b id="s-users">—</b><span>пользователей</span></div>
+    <div class="stat"><b id="s-gen-today">—</b><span>генераций сегодня</span></div>
+    <div class="stat"><b id="s-gen-month">—</b><span>генераций за месяц</span></div>
+    <div class="stat"><b id="s-r-today">—</b><span>r. сегодня</span></div>
+    <div class="stat"><b id="s-r-month">—</b><span>r. за месяц</span></div>
+  </section>
+  <p class="updated" id="s-updated"></p>
+
+  <section id="test">
+    <h2>Проверка гипотезы</h2>
+    <details><summary>Гипотеза <i>?</i></summary><div>
+      <p>IT- и офисные пользователи Telegram регулярно упираются в требования форм к изображениям (размер, вес, формат, пропорции, метаданные). В спешке они готовы делегировать подгонку боту: прислать картинку, описать задачу своими словами и получить годный файл меньше чем за минуту.</p>
+      <p>Самая сильная боль — когда изображение нужно <b>больше или качественнее</b> исходника: это решает только генеративный ИИ.</p>
+    </div></details>
+    <details><summary>Прототип <i>?</i></summary><div>
+      <p>Telegram-бот <a href="https://t.me/imgrsz_bot?start=case_proto">@imgrsz_bot</a>, собран за 1 день:</p>
+      <ul><li>свободный запрос → GigaChat составляет бриф и JSON-план;</li><li>пользователь подтверждает или правит бриф (до 5 итераций);</li><li>технические операции — Pillow (детерминированно, быстро, дёшево);</li><li>генеративные — Gemini через OpenRouter;</li><li>внутренняя валюта r., 500 r. на старте, 5 r. / 30 r. за результат.</li></ul>
+    </div></details>
+    <details><summary>Реальный тест <i>?</i></summary><div>
+      <p>Трафик — Telegram Ads в IT-, дизайн- и HR-каналах: 3 креатива под 3 боли («форма не принимает фото», «нужно шире», «нужно легче»). Каждый креатив — свой диплинк <code>?start=tgads_*</code>, источник пишется в профиль пользователя.</p>
+      <p>Бонус 500 r. убирает барьер оплаты: проверяем ценность, а не готовность платить. Готовность платить — следующий эксперимент (пополнение баланса).</p>
+    </div></details>
+    <details><summary>Сбор данных <i>?</i></summary><div>
+      <p>Каждый шаг — событие в SQLite: <code>start(source)</code> → <code>image_received</code> → <code>brief_shown</code> → <code>brief_edit</code> → <code>confirmed</code> → <code>delivered | failed | refused</code>.</p>
+      <p>По каждой задаче: число итераций брифа, токены LLM, фактическая стоимость генерации в $, время обработки, параметры результата. Публичная сводка обновляется каждые 5 минут в <a href="/stats.json">stats.json</a> — цифры вверху страницы живые.</p>
+    </div></details>
+    <details><summary>Критерии принятия <i>?</i></summary><div>
+      <ul>
+        <li>≥ 30 активированных пользователей (прислали изображение) за неделю;</li>
+        <li>бриф → подтверждение ≥ 40%, подтверждение → результат ≥ 80%;</li>
+        <li>≥ 25% активированных делают 2-ю задачу за 7 дней;</li>
+        <li>себестоимость ИИ-задачи &lt; 30 r. с запасом маржи ≥ 70%;</li>
+        <li>0 инцидентов модерации.</li>
+      </ul>
+      <p>Выполнены — запускаем оплату и пресеты. Нет — смотрим, где рвётся воронка, и меняем сегмент или сценарий.</p>
+    </div></details>
+  </section>
+
+  <section id="prod">
+    <h2>Путь в продакшн</h2>
+    <details><summary>Юнит-экономика <i>?</i></summary><div>
+      <table>
+        <tr><th></th><th>ИИ-задача</th><th>Техническая</th></tr>
+        <tr><td>Цена</td><td>30 r.</td><td>5 r.</td></tr>
+        <tr><td>Генерация (Gemini)</td><td>≈ 2,8 ₽ ($0.034)</td><td>—</td></tr>
+        <tr><td>Бриф (GigaChat, ~1k токенов)</td><td>≈ 1,5 ₽</td><td>≈ 1,5 ₽</td></tr>
+        <tr><td>Маржа при 1 r. = 1 ₽</td><td>≈ 85%</td><td>≈ 70%</td></tr>
+      </table>
+      <p>Модель: <b>LTV = ARPPU × маржа × срок жизни</b>, цель LTV/CAC ≥ 3 и окупаемость CAC &lt; 1 месяца. CAC считаем по UTM: расход Telegram Ads / платящие из источника. Пакеты пополнения (100 / 300 / 1000 r.) и подписка для частых пользователей — следующий эксперимент.</p>
+    </div></details>
+    <details><summary>Анти-prompt-injection <i>?</i></summary><div>
+      <ul>
+        <li>LLM не вызывает инструменты: возвращает только JSON, который проходит строгую схему (allow-list операций, типы, диапазоны).</li>
+        <li>Текст пользователя изолирован разделителями и помечен как данные; системные правила запрещают менять роль и формат.</li>
+        <li>Цена считается кодом, а не моделью; баланс списывается атомарно и только за результат.</li>
+        <li>Далее: отдельный классификатор-guard, rate limit на пользователя, red-team набор тестов в CI.</li>
+      </ul>
+    </div></details>
+    <details><summary>Этический фильтр <i>?</i></summary><div>
+      <ul>
+        <li>Отказ: подделка документов, печатей и подписей; изменение внешности на фото для документов; NSFW; насилие; экстремизм; чужие изображения для обмана.</li>
+        <li>Двойная защита: правила в брифе GigaChat + встроенная безопасность модели генерации.</li>
+        <li>Далее: проверка входного изображения vision-моделью до генерации, журнал отказов, ручная выборочная проверка.</li>
+        <li>Каждый результат ИИ сопровождается дисклеймером в сообщении бота.</li>
+      </ul>
+    </div></details>
+    <details><summary>Серверы <i>?</i></summary><div>
+      <ul>
+        <li>Сейчас: 1 VPS (serverspace), Docker Compose, SQLite, Caddy с авто-HTTPS, ежедневный бэкап.</li>
+        <li>Продакшн: PostgreSQL, S3 для временных файлов, очередь задач (Redis + воркеры) для пиковой нагрузки, 2+ ноды за балансировщиком, вебхуки вместо polling.</li>
+        <li>Мониторинг: аптайм, ошибки (Sentry), алерты в Telegram; CI/CD через GitHub Actions; секреты — в менеджере секретов.</li>
+        <li>Runbook для ИИ-агента: «прод упал», «переезд на новый сервер», откат — в репозитории.</li>
+      </ul>
+    </div></details>
+    <details><summary>Данные и дисклеймеры <i>?</i></summary><div>
+      <ul>
+        <li>Храним минимум: Telegram ID, username, историю запросов, технические метрики. Сами изображения не храним — только file_id Telegram.</li>
+        <li>Далее: явное согласие при первом /start, команда /delete, срок хранения логов — 90 дней.</li>
+        <li>Соответствие 152-ФЗ (РФ) и закону РК «О персональных данных»: локализация БД для граждан РФ — при переезде в продакшн.</li>
+        <li>Маркировка рекламы (erid) через рекламный кабинет; дисклеймеры на лендинге и в боте.</li>
+      </ul>
+    </div></details>
+    <details><summary>Маркетинг-автоматизация <i>?</i></summary><div>
+      <ul>
+        <li>Триггеры: не прислал фото за 1 час → пример запроса; 3 дня тишины → напоминание; баланс &lt; 30 r. → предложение пополнения.</li>
+        <li>Реферальная программа: +100 r. обоим.</li>
+        <li>Пресеты под частые задачи (Госуслуги, hh.ru, маркетплейсы, обложки) — из кластеров реальных запросов.</li>
+        <li>Автоотключение креативов с CAC выше порога, перераспределение бюджета.</li>
+      </ul>
+    </div></details>
+    <details><summary>Аналитика <i>?</i></summary><div>
+      <ul>
+        <li>Сейчас: события и стоимость в SQLite, stats.json для витрины.</li>
+        <li>Далее: выгрузка событий в ClickHouse, дашборды в DataLens: воронка, когорты, retention, CAC/LTV по источникам, себестоимость по моделям.</li>
+        <li>Веб-аналитика лендинга (Яндекс Метрика) + сквозная связка с ботом через диплинк.</li>
+        <li>A/B: цены, тексты брифа, модели генерации.</li>
+      </ul>
+    </div></details>
+  </section>
+
+  <section id="harness">
+    <h2>AI harness</h2>
+    <details><summary>Цели → метрики <i>?</i></summary><div>
+      <p>Бизнес-цель раскладывается в дерево через модель роста юнит-экономики:</p>
+      <p class="formula">Выручка = Охват × CTR × Активация × Конверсия в оплату × ARPPU × Retention</p>
+      <p>Для каждого узла — целевое значение, ведущая метрика и guardrail (маржа, инциденты, время ответа). Модель пересчитывается ежедневно и показывает, какой узел сильнее всего двигает выручку прямо сейчас.</p>
+    </div></details>
+    <details><summary>Стратегический агент <i>?</i></summary><div>
+      <ul>
+        <li>Единый агент с read-only доступом к метрикам, обезличенным запросам пользователей, рекламным отчётам и бэклогу.</li>
+        <li>Еженедельно: отчёт по дереву метрик, аномалии, 3–5 гипотез с оценкой влияния на выручку (ICE на модели юнит-экономики).</li>
+        <li>Цикл: гипотеза → эксперимент → замер → решение. Расход бюджета и изменения продукта — только после одобрения человеком.</li>
+      </ul>
+    </div></details>
+    <details><summary>Поиск сегментов <i>?</i></summary><div>
+      <p>По методике Jobs-to-be-Done Ивана Замесина агент работает с <b>работами</b>, а не с демографией:</p>
+      <ul>
+        <li>кластеризует свободные запросы в бот в работы: «загрузить фото в форму и пройти проверку», «сделать обложку из того, что есть», «подготовить карточку товара»;</li>
+        <li>для каждой работы восстанавливает контекст и триггер, критерии успеха, текущие альтернативы (Photoshop, онлайн-ресайзеры, «попросить дизайнера») и барьеры;</li>
+        <li>оценивает объём и ценность сегмента, формирует гипотезы ценности и сценарии интервью;</li>
+        <li>предлагает новый пресет, креатив и канал под работу — и проверяет через эксперимент.</li>
+      </ul>
+    </div></details>
+  </section>
+
+  <section id="arch">
+    <h2>Архитектура</h2>
+    <figure class="arch"><img src="/assets/architecture.svg" alt="Схема архитектуры imgrsz" width="1200" height="720"></figure>
+    <details><summary>Бот <i>?</i></summary><div><p>Python 3.12 + aiogram 3: диалог «фото → бриф → подтверждение → результат», состояние в FSM, отдача результата файлом без пережатия Telegram.</p></div></details>
+    <details><summary>Бриф и план <i>?</i></summary><div><p>GigaChat-2-Pro превращает свободный текст в бриф и JSON-план. План валидируется по allow-list схеме; цена считается кодом.</p></div></details>
+    <details><summary>Обработка <i>?</i></summary><div><p>Pillow: обрезка, размер, поля, DPI, формат, сжатие до лимита (бинарный поиск по качеству). Метаданные не записываются никогда. ИИ-шаг — Gemini Flash Lite Image через OpenRouter, стоимость возвращается в ответе и пишется в задачу.</p></div></details>
+    <details><summary>Данные <i>?</i></summary><div><p>SQLite (WAL): пользователи, леджер баланса, задачи, события. Каждые 5 минут — атомарная выгрузка stats.json.</p></div></details>
+    <details><summary>Инфраструктура <i>?</i></summary><div><p>Docker Compose на VPS serverspace: контейнер бота + Caddy (HTTPS, лендинг, кейс, stats.json). Код и документация — <a href="https://github.com/FelixNamba/imgrsz">GitHub</a>.</p></div></details>
+  </section>
+</main>
+
+<footer>
+  <p class="muted"><a href="/">imgrsz</a> · <a href="https://github.com/FelixNamba/imgrsz">GitHub</a> · <a href="https://t.me/imgrsz_bot?start=case_footer">@imgrsz_bot</a></p>
+</footer>
+
+<script>
+(async () => {
+  const set = (id, v) => { document.getElementById(id).textContent = v; };
+  try {
+    const r = await fetch('/stats.json', { cache: 'no-store' });
+    const s = await r.json();
+    const n = (v) => Number(v || 0).toLocaleString('ru-RU');
+    set('s-users', n(s.unique_users));
+    set('s-gen-today', n(s.generations_today));
+    set('s-gen-month', n(s.generations_month));
+    set('s-r-today', n(s.spent_r_today));
+    set('s-r-month', n(s.spent_r_month));
+    if (s.updated_at) set('s-updated', 'обновлено ' + new Date(s.updated_at).toLocaleString('ru-RU', { dateStyle: 'short', timeStyle: 'short' }));
+  } catch (e) {
+    set('s-updated', 'статистика временно недоступна');
+  }
+})();
+</script>
+</body>
+</html>

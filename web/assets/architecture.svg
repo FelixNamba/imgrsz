@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720" width="1200" height="720" font-family="-apple-system, 'Segoe UI', Roboto, Arial, sans-serif">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#55524A"/>
+    </marker>
+    <marker id="b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#0A84FF"/>
+    </marker>
+    <filter id="s" x="-10%" y="-10%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#28200A" flood-opacity=".10"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="720" fill="#F3F0E8"/>
+
+  <text x="40" y="64" font-family="Georgia, 'Times New Roman', serif" font-size="40" font-weight="600" fill="#16150F">imgrsz · архитектура</text>
+  <text x="40" y="94" font-size="15" fill="#6E6A60">фото + свободный запрос → бриф → подтверждение → файл, который пройдёт проверку</text>
+
+  <!-- VPS boundary -->
+  <rect x="470" y="122" width="440" height="560" rx="28" fill="none" stroke="#B9B2A0" stroke-width="2" stroke-dasharray="8 7"/>
+  <text x="494" y="150" font-size="13" font-weight="700" fill="#6E6A60" letter-spacing=".06em">VPS SERVERSPACE · DOCKER COMPOSE</text>
+
+  <!-- User + Telegram -->
+  <g filter="url(#s)">
+    <rect x="40" y="240" width="170" height="110" rx="22" fill="#FBFAF6"/>
+    <rect x="250" y="240" width="180" height="110" rx="22" fill="#FBFAF6"/>
+    <rect x="40" y="590" width="390" height="70" rx="22" fill="#FBFAF6"/>
+  </g>
+  <text x="125" y="285" text-anchor="middle" font-size="26">🙋</text>
+  <text x="125" y="315" text-anchor="middle" font-size="17" font-weight="700" fill="#16150F">Пользователь</text>
+  <text x="125" y="336" text-anchor="middle" font-size="13" fill="#6E6A60">фото + задача</text>
+  <text x="340" y="285" text-anchor="middle" font-size="26">✈️</text>
+  <text x="340" y="315" text-anchor="middle" font-size="17" font-weight="700" fill="#16150F">Telegram Bot API</text>
+  <text x="340" y="336" text-anchor="middle" font-size="13" fill="#6E6A60">@imgrsz_bot</text>
+  <text x="235" y="620" text-anchor="middle" font-size="17" font-weight="700" fill="#16150F">🌐 Браузер</text>
+  <text x="235" y="642" text-anchor="middle" font-size="13" fill="#6E6A60">лендинг · кейс · живая статистика</text>
+
+  <!-- Bot container -->
+  <g filter="url(#s)"><rect x="494" y="170" width="392" height="290" rx="22" fill="#FBFAF6"/></g>
+  <rect x="494" y="170" width="392" height="46" rx="22" fill="#0A84FF"/>
+  <rect x="494" y="196" width="392" height="20" fill="#0A84FF"/>
+  <text x="690" y="200" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">bot · Python 3.12 · aiogram 3</text>
+  <g font-size="14" fill="#16150F">
+    <rect x="514" y="232" width="352" height="44" rx="22" fill="#F3F0E8"/>
+    <text x="534" y="259"><tspan font-weight="700" fill="#0A84FF">1</tspan>  Диалог и состояния (FSM)</text>
+    <rect x="514" y="286" width="352" height="44" rx="22" fill="#F3F0E8"/>
+    <text x="534" y="313"><tspan font-weight="700" fill="#0A84FF">2</tspan>  Бриф → JSON-план (allow-list)</text>
+    <rect x="514" y="340" width="352" height="44" rx="22" fill="#F3F0E8"/>
+    <text x="534" y="367"><tspan font-weight="700" fill="#0A84FF">3</tspan>  Pillow-пайплайн · без метаданных</text>
+    <rect x="514" y="394" width="352" height="44" rx="22" fill="#F3F0E8"/>
+    <text x="534" y="421"><tspan font-weight="700" fill="#0A84FF">4</tspan>  Баланс r. · события · стоимость</text>
+  </g>
+
+  <!-- Storage + stats + caddy -->
+  <g filter="url(#s)">
+    <rect x="494" y="490" width="180" height="76" rx="22" fill="#FBFAF6"/>
+    <rect x="706" y="490" width="180" height="76" rx="22" fill="#FBFAF6"/>
+    <rect x="494" y="592" width="392" height="66" rx="22" fill="#FBFAF6"/>
+  </g>
+  <text x="584" y="524" text-anchor="middle" font-size="16" font-weight="700" fill="#16150F">SQLite (WAL)</text>
+  <text x="584" y="546" text-anchor="middle" font-size="12" fill="#6E6A60">users · ledger · jobs · events</text>
+  <text x="796" y="524" text-anchor="middle" font-size="16" font-weight="700" fill="#16150F">stats.json</text>
+  <text x="796" y="546" text-anchor="middle" font-size="12" fill="#6E6A60">каждые 5 минут</text>
+  <text x="690" y="622" text-anchor="middle" font-size="16" font-weight="700" fill="#16150F">Caddy · HTTPS</text>
+  <text x="690" y="643" text-anchor="middle" font-size="12" fill="#6E6A60">/  ·  /case  ·  /stats.json</text>
+
+  <!-- External AI -->
+  <g filter="url(#s)">
+    <rect x="950" y="170" width="210" height="100" rx="22" fill="#FBFAF6"/>
+    <rect x="950" y="300" width="210" height="100" rx="22" fill="#FBFAF6"/>
+    <rect x="950" y="500" width="210" height="76" rx="22" fill="#FBFAF6"/>
+  </g>
+  <text x="1055" y="208" text-anchor="middle" font-size="17" font-weight="700" fill="#16150F">GigaChat API</text>
+  <text x="1055" y="230" text-anchor="middle" font-size="12" fill="#6E6A60">GigaChat-2-Pro</text>
+  <text x="1055" y="248" text-anchor="middle" font-size="12" fill="#6E6A60">бриф · план · отказы</text>
+  <text x="1055" y="338" text-anchor="middle" font-size="17" font-weight="700" fill="#16150F">OpenRouter</text>
+  <text x="1055" y="360" text-anchor="middle" font-size="12" fill="#6E6A60">Gemini Flash Lite Image</text>
+  <text x="1055" y="378" text-anchor="middle" font-size="12" fill="#6E6A60">расширить · фон · качество</text>
+  <text x="1055" y="534" text-anchor="middle" font-size="16" font-weight="700" fill="#16150F">GitHub</text>
+  <text x="1055" y="555" text-anchor="middle" font-size="12" fill="#6E6A60">код · документация · runbook</text>
+  <text x="1055" y="440" text-anchor="middle" font-size="12" fill="#0A84FF" font-weight="700">ИИ-провайдеры</text>
+
+  <!-- Arrows -->
+  <g stroke="#55524A" stroke-width="2" fill="none">
+    <path d="M212 295H248" marker-start="url(#a)" marker-end="url(#a)"/>
+    <path d="M432 295H492" marker-start="url(#a)" marker-end="url(#a)"/>
+    <path d="M584 462V488" marker-end="url(#a)"/>
+    <path d="M676 528H704" marker-end="url(#a)"/>
+    <path d="M796 568V590" marker-end="url(#a)" stroke-dasharray="5 5"/>
+    <path d="M432 625H492" marker-end="url(#a)"/>
+    <path d="M948 538H890" marker-end="url(#a)" stroke-dasharray="5 5"/>
+  </g>
+  <g stroke="#0A84FF" stroke-width="2.5" fill="none">
+    <path d="M888 308C915 308 915 220 948 220" marker-start="url(#b)" marker-end="url(#b)"/>
+    <path d="M888 362C915 362 915 350 948 350" marker-start="url(#b)" marker-end="url(#b)"/>
+  </g>
+  <g font-size="11" fill="#6E6A60">
+    <text x="462" y="284" text-anchor="middle">polling</text>
+    <text x="919" y="530" text-anchor="middle">deploy</text>
+  </g>
+</svg>
