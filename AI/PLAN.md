@@ -45,8 +45,8 @@ imgrsz/
   CLAUDE.md
   AI/  PLAN.md  PRD.md  ARTIFACTS.md  TECH.md  PRODUCT.md  ANALYTICS.md
        DEPLOY.md (AI-tailored runbook: first deploy, prod down, migration to a new VPS, rollback, key rotation)
-       CASE_CONTENT.md          ← AI/ holds AI documentation only (no ads, no prod files)
-  ads/  creatives.md  targeting.md  utm.md  images/   ← ready-to-launch ads
+       ← AI/ holds AI documentation only (no ads, no prod files)
+  ads/  creatives.md  targeting.md  utm.md   ← ready-to-launch ads
   credentials.env               ← yours, already has BOT_TOKEN; gitignored, never committed
   bot/  app/{handlers,llm,providers,pipeline,billing,analytics,db}.py  tests/
   web/  index.html  case/index.html  assets/
