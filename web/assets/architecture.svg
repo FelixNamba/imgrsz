@@ -47,7 +47,7 @@
     <rect x="514" y="340" width="352" height="44" rx="22" fill="#F3F0E8"/>
     <text x="534" y="367"><tspan font-weight="700" fill="#0A84FF">3</tspan>  Pillow-пайплайн · без метаданных</text>
     <rect x="514" y="394" width="352" height="44" rx="22" fill="#F3F0E8"/>
-    <text x="534" y="421"><tspan font-weight="700" fill="#0A84FF">4</tspan>  Баланс r. · события · стоимость</text>
+    <text x="534" y="421"><tspan font-weight="700" fill="#0A84FF">4</tspan>  Баланс р. · события · стоимость</text>
   </g>
 
   <!-- Storage + stats + caddy -->

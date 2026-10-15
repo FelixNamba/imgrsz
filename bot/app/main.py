@@ -7,7 +7,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
 
-from . import handlers
+from . import admin, handlers
 from .analytics import export_stats
 from .config import config
 from .db import DB
@@ -28,13 +28,21 @@ async def stats_loop(db: DB, every: int = 300):
 
 async def run_bot():
     db = DB(config.db_path)
-    handlers.setup(db, GigaChat(), get_provider())
-    bot = Bot(config.bot_token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+    props = DefaultBotProperties(parse_mode=ParseMode.HTML)
+    bot = Bot(config.bot_token, default=props)
+    admin_bot = Bot(config.admin_bot_token, default=props) if config.admin_bot_token else None
+    handlers.setup(db, GigaChat(), get_provider(), admin_bot)
     dp = Dispatcher()
     dp.include_router(handlers.router)
     asyncio.create_task(stats_loop(db))
-    log.info("bot started: provider=%s model=%s", config.image_provider, config.gigachat_model)
-    await dp.start_polling(bot)
+    log.info("bot started: provider=%s model=%s admin_bot=%s", config.image_provider, config.gigachat_model, bool(admin_bot))
+    polls = [dp.start_polling(bot)]
+    if admin_bot:
+        admin.setup(db)
+        admin_dp = Dispatcher()
+        admin_dp.include_router(admin.router)
+        polls.append(admin_dp.start_polling(admin_bot, handle_signals=False))
+    await asyncio.gather(*polls)
 
 
 def main():

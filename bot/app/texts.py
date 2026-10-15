@@ -2,11 +2,12 @@
 from .config import config
 
 WELCOME = (
-    "Привет! Я <b>imgrsz</b> — подгоняю изображения под требования сайтов и форм.\n\n"
+    "Менять размер картинок\n\n"
     "📎 Пришлите картинку (лучше файлом, без сжатия) и напишите, что нужно: "
     "«1080×1080 до 500 КБ», «расширь до 16:9», «фото 35×45 на белом фоне», «убери метаданные».\n\n"
-    f"🎁 Вам начислено <b>{config.welcome_bonus} r.</b>\n"
-    f"Цены: техническая правка — {config.price_technical} r., ИИ-обработка — {config.price_ai} r. Бриф — бесплатно."
+    "PS Бот не умеет охранять данные. Не загружайте документы.\n\n"
+    f"🎁 Вам начислено <b>{config.welcome_bonus} р.</b>\n"
+    f"Цены: техническая правка — {config.price_technical} р., ИИ-обработка — {config.price_ai} р. Бриф — бесплатно."
 )
 WELCOME_BACK = "С возвращением! Пришлите изображение и опишите задачу."
 HELP = (
@@ -35,22 +36,22 @@ DISCLAIMER_TECH = "ℹ️ Обработано автоматически. Пр�
 
 
 def balance(value: int) -> str:
-    return f"💰 Баланс: <b>{value} r.</b>"
+    return f"💰 Баланс: <b>{value} р.</b>"
 
 
 def brief(text: str, price: int, is_ai: bool) -> str:
     kind = "ИИ-обработка" if is_ai else "техническая правка"
-    return f"📝 <b>Бриф</b>\n{text}\n\nСтоимость: <b>{price} r.</b> ({kind})"
+    return f"📝 <b>Бриф</b>\n{text}\n\nСтоимость: <b>{price} р.</b> ({kind})"
 
 
 def no_money(price: int, bal: int) -> str:
-    return f"Недостаточно средств: нужно {price} r., на балансе {bal} r. Пополнение скоро появится 🙏"
+    return f"Недостаточно средств: нужно {price} р., на балансе {bal} р. Пополнение скоро появится 🙏"
 
 
 def done(res, price: int, bal: int, is_ai: bool) -> str:
     dpi = f", {res.dpi} DPI" if res.dpi else ""
     return (
         f"✅ Готово: {res.width}×{res.height}, {res.ext.upper()}, {res.kb} КБ{dpi}\n"
-        f"Списано {price} r. · Остаток {bal} r.\n\n"
+        f"Списано {price} р. · Остаток {bal} r.\n\n"
         f"{DISCLAIMER_AI if is_ai else DISCLAIMER_TECH}"
     )

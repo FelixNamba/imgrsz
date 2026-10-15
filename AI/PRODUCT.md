@@ -6,7 +6,7 @@ Requirements and metrics: `AI/PRD.md`. Texts: `bot/app/texts.py`. Prices: `bot/a
 ```mermaid
 flowchart TD
   S[/start + source/] --> B{New?}
-  B -- yes --> W[+500 r. welcome]
+  B -- yes --> W[+500 р. welcome]
   B -- no --> H[welcome back]
   W & H --> I[Sends image]
   I --> C{Caption?}
@@ -19,14 +19,14 @@ flowchart TD
   R -- plan --> BR[📝 Brief + price + ✅/✏️]
   BR -- ✏️ --> E
   BR -- ✅ --> M{Balance ≥ price?}
-  M -- no --> N[Not enough r.]
+  M -- no --> N[Not enough р.]
   M -- yes --> P[AI edit? → Pillow ops] --> D[📎 File + charge + disclaimer]
   P -- error --> F[Failed, no charge]
 ```
 Edit loop limit: 5 iterations per image.
 
 ## Pricing
-Brief 0 r. · technical 5 r. · AI 30 r. · welcome 500 r. Charged only after successful delivery.
+Brief 0 р. · technical 5 р. · AI 30 р. · welcome 500 р. Charged only after successful delivery.
 
 ## Supported tasks (examples users write)
 | Request | Plan |
@@ -41,5 +41,5 @@ Brief 0 r. · technical 5 r. · AI 30 r. · welcome 500 r. Charged only after su
 ## Bot profile (set in @BotFather)
 - **Name:** Поправь размер картинки
 - **About (≤120):** Подгоню фото под требования формы: размер, вес, формат, пропорции, без метаданных. Расширю и улучшу с ИИ.
-- **Description (≤512):** Картинка не грузится? Пришлите её и напишите своими словами, что нужно: «1080×1080 до 500 КБ», «расширь до 16:9», «фото 35×45 на белом фоне». Я составлю бриф, вы подтвердите — и получите готовый файл. 🎁 500 r. на старте.
+- **Description (≤512):** Картинка не грузится? Пришлите её и напишите своими словами, что нужно: «1080×1080 до 500 КБ», «расширь до 16:9», «фото 35×45 на белом фоне». Я составлю бриф, вы подтвердите — и получите готовый файл. 🎁 500 р. на старте.
 - **Commands:** `start - Начать`, `help - Как это работает`, `balance - Баланс`

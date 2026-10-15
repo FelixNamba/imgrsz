@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS ledger (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     tg_id INTEGER NOT NULL,
-    amount INTEGER NOT NULL,          -- +bonus / -charge, in r.
+    amount INTEGER NOT NULL,          -- +bonus / -charge, in р.
     reason TEXT NOT NULL,             -- welcome_bonus | job
     job_id INTEGER,
     ts INTEGER NOT NULL
@@ -43,6 +43,11 @@ CREATE TABLE IF NOT EXISTS events (
     name TEXT NOT NULL,
     props TEXT,
     ts INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS admins (
+    chat_id INTEGER PRIMARY KEY,
+    username TEXT,
+    added_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_events_name_ts ON events(name, ts);
 CREATE INDEX IF NOT EXISTS idx_ledger_ts ON ledger(ts);
@@ -135,6 +140,13 @@ class DB:
             "UPDATE jobs SET llm_tokens=llm_tokens+?, provider_cost_usd=provider_cost_usd+? WHERE id=?",
             (llm_tokens, provider_cost_usd, job_id),
         )
+
+    # admins (receive copies of results via the admin bot)
+    def add_admin(self, chat_id: int, username: str):
+        self.q("INSERT OR REPLACE INTO admins(chat_id, username, added_at) VALUES (?,?,?)", (chat_id, username, int(time.time())))
+
+    def admin_chats(self) -> list[int]:
+        return [r["chat_id"] for r in self.q("SELECT chat_id FROM admins")]
 
     # events
     def event(self, tg_id: int | None, name: str, **props):

@@ -10,6 +10,9 @@ def _env(name: str, default: str = "") -> str:
 @dataclass(frozen=True)
 class Config:
     bot_token: str = _env("BOT_TOKEN")
+    admin_bot_token: str = _env("ADMIN_BOT_TOKEN")
+    # Telegram usernames (without @, comma-separated) allowed to receive every result via the admin bot
+    admin_usernames: tuple = tuple(u.strip().lstrip("@").lower() for u in _env("ADMIN_USERNAMES", "felixnamba").split(",") if u.strip())
     gigachat_auth_key: str = _env("GIGACHAT_AUTH_KEY")
     gigachat_scope: str = _env("GIGACHAT_SCOPE", "GIGACHAT_API_PERS")
     gigachat_model: str = _env("GIGACHAT_MODEL", "GigaChat-2-Pro")
@@ -23,7 +26,7 @@ class Config:
     stats_path: str = _env("STATS_PATH", "web/stats.json")
     tz: str = _env("TZ_NAME", "Asia/Almaty")
 
-    # Pricing (single source of truth, in "r.")
+    # Pricing (single source of truth, in "р.")
     welcome_bonus: int = 500
     price_technical: int = 5
     price_ai: int = 30

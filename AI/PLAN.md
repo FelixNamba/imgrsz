@@ -17,8 +17,8 @@ Showcase for an AI Product Manager one-day-offer. Product: **imgrsz**, a Telegra
 | Repo | public, on your GitHub account |
 
 ## Suggested image edit types (from research + common upload specs)
-**Technical, 5 r. (Pillow, deterministic):** resize to px · crop to ratio (1:1, 4:5, 3:4, 16:9, 9:16) · compress to ≤ N KB/MB · convert (HEIC/PNG/WEBP → JPG and so on) · DPI or print size (e.g. 35×45 mm) · pad or letterbox with a colour · fix orientation/rotate · sRGB/grayscale · strip EXIF/GPS/XMP · flatten transparency onto white · safe-zone check with a preview overlay (avatar circle, stories 9:16).
-**AI, 30 r. (image provider):** extend the canvas (outpaint) · upscale/enhance · remove or replace the background (white for marketplaces and documents) · remove objects · reframe the subject into the safe zone · restore/denoise · light and colour correction.
+**Technical, 5 р. (Pillow, deterministic):** resize to px · crop to ratio (1:1, 4:5, 3:4, 16:9, 9:16) · compress to ≤ N KB/MB · convert (HEIC/PNG/WEBP → JPG and so on) · DPI or print size (e.g. 35×45 mm) · pad or letterbox with a colour · fix orientation/rotate · sRGB/grayscale · strip EXIF/GPS/XMP · flatten transparency onto white · safe-zone check with a preview overlay (avatar circle, stories 9:16).
+**AI, 30 р. (image provider):** extend the canvas (outpaint) · upscale/enhance · remove or replace the background (white for marketplaces and documents) · remove objects · reframe the subject into the safe zone · restore/denoise · light and colour correction.
 **Metadata (decided):** every output image is saved with **no AI metadata at all** (EXIF/XMP/IPTC/C2PA stripped; Pillow re-encodes without metadata). Every result message from the bot includes a disclaimer that the image was processed with AI.
 
 ## Bot workflow
@@ -26,8 +26,8 @@ Showcase for an AI Product Manager one-day-offer. Product: **imgrsz**, a Telegra
 2. GigaChat returns a RU brief plus a JSON plan `{ops:[...], ai:true|false, price}` → buttons ✅ Confirm / ✏️ Edit.
 3. Edit → the user's text plus the previous brief go back to step 2 (loop, capped at 5).
 4. Confirm → balance check → pipeline: deterministic ops (Pillow) ± AI op (provider) → validation (dimensions, size, format).
-5. The bot sends the file as a document (no Telegram recompression) plus "Списано N r. · Остаток M r.". Real provider cost is logged.
-Extras: `/start` with a UTM payload grants 500 r. once per user · `/balance` · `/help` · moderation before every generation.
+5. The bot sends the file as a document (no Telegram recompression) plus "Списано N р. · Остаток M р.". Real provider cost is logged.
+Extras: `/start` with a UTM payload grants 500 р. once per user · `/balance` · `/help` · moderation before every generation.
 
 ## Architecture (goes into the docs as a Mermaid scheme)
 ```
@@ -57,12 +57,12 @@ Pipeline ops are pure functions with pytest coverage. Providers sit behind one i
 
 ## Landing page (`/`) — style from `/initial/`
 Warm off-white background (#F3F0E8), serif headlines (Cormorant/EB Garamond), pill chips, one accent (blue #0A84FF), phone mockups of the real bot chat, a few emoji.
-Scroll 1: hero image, before→after, one-line pitch, CTA "Открыть в Telegram" (deep link `?start=landing`). Scroll 2: prices (1 AI generation = 30 r., technical = 5 r., 500 r. on start). Footer: disclaimers (no storage beyond N days, AI-result labelling, legal-content-only rule, Metrica cookies, not a public offer).
+Scroll 1: hero image, before→after, one-line pitch, CTA "Открыть в Telegram" (deep link `?start=landing`). Scroll 2: prices (1 AI generation = 30 р., technical = 5 р., 500 р. on start). Footer: disclaimers (no storage beyond N days, AI-result labelling, legal-content-only rule, Metrica cookies, not a public offer).
 
 ## Showcase page (`/case`) — RU, labels of 1–3 words, details behind "?"
-- **Top stats** from `stats.json` (fetched on load): unique users · generations today / month · r. spent today / month.
-- **Hypothesis** · **Prototype** · **Real testing** · **Data collection** · **Acceptance criteria** (e.g. ≥30 activated users, ≥40% confirm→result, CAC < X, AI cost per job < 30 r.).
-- **Towards production:** unit economics (r. price vs real cost, margin, payback) · safety (anti prompt injection: brief as structured JSON and an allow-listed ops schema; user text never reaches tools directly · law/ethics filter: GigaChat moderation + provider NSFW, no documents forgery or face swaps of third parties) · production servers (HA, backups, Postgres, S3, queue) · data rules and disclaimers (retention, 152-ФЗ / KZ law, consent) · marketing automation (trigger messages, referral) · analytics integration (events → ClickHouse/Metrica/DataLens).
+- **Top stats** from `stats.json` (fetched on load): unique users · generations today / month · р. spent today / month.
+- **Hypothesis** · **Prototype** · **Real testing** · **Data collection** · **Acceptance criteria** (e.g. ≥30 activated users, ≥40% confirm→result, CAC < X, AI cost per job < 30 р.).
+- **Towards production:** unit economics (р. price vs real cost, margin, payback) · safety (anti prompt injection: brief as structured JSON and an allow-listed ops schema; user text never reaches tools directly · law/ethics filter: GigaChat moderation + provider NSFW, no documents forgery or face swaps of third parties) · production servers (HA, backups, Postgres, S3, queue) · data rules and disclaimers (retention, 152-ФЗ / KZ law, consent) · marketing automation (trigger messages, referral) · analytics integration (events → ClickHouse/Metrica/DataLens).
 - **AI harness:** business goals → metrics tree via a unit-economics growth model · unified strategic agent: reads metrics and user requests, clusters JTBD (Ivan Zamesin's method: job, context, criteria, alternatives) → proposes new segments and experiments.
 - **Architecture:** a dedicated showcase-quality architecture image (`web/assets/architecture.png/svg`, made later in the day) + short notes.
 
@@ -112,7 +112,7 @@ Rules:
 ## Verification
 - `pytest` for pipeline ops (size, ratio, KB limit, EXIF stripped), the billing ledger, and brief JSON schema validation.
 - Local `docker compose up` with the fake provider → full bot dialog in Telegram.
-- On the VPS: real flow, both 5 r. and 30 r. paths; balance and events in SQLite; `curl https://<domain>/stats.json`; `/case` shows the numbers; Lighthouse mobile check of `/` and `/case`; the landing deep link with UTM shows up in the events.
+- On the VPS: real flow, both 5 р. and 30 р. paths; balance and events in SQLite; `curl https://<domain>/stats.json`; `/case` shows the numbers; Lighthouse mobile check of `/` and `/case`; the landing deep link with UTM shows up in the events.
 - Runbook dry-run: `docker compose down` → restore following DEPLOY.md "prod down".
 
 Sources: [GigaChat models](https://developers.sber.ru/docs/ru/gigachat/models/updates) · [GigaChat image generation](https://developers.sber.ru/docs/ru/gigachat/guides/images-generation) · [Passport photo specs](https://passlens.com/blog/passport-photo-file-size-checker-guide) · [Telegram Ads 2026](https://ppc.world/articles/reklama-v-telegram-v-2026-godu-benchmarki-i-stoit-li-zapuskat-kampanii-seychas/amp/)

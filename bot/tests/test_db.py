@@ -44,3 +44,9 @@ def test_stats(db, tmp_path):
     s = export_stats(db, str(tmp_path / "stats.json"))
     assert s["unique_users"] == 2 and s["generations_today"] == 1 and s["spent_r_month"] == 30
     assert json.loads((tmp_path / "stats.json").read_text())["spent_r_today"] == 30
+
+
+def test_admins(db):
+    db.add_admin(42, "felixnamba")
+    db.add_admin(42, "felixnamba")
+    assert db.admin_chats() == [42]

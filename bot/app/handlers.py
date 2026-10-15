@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import BufferedInputFile, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from . import pipeline, texts
+from . import admin, pipeline, texts
 from .config import config
 from .db import DB
 from .llm import GigaChat
@@ -26,8 +26,8 @@ class S(StatesGroup):
     waiting_edit = State()
 
 
-def setup(db: DB, llm: GigaChat, provider: ImageEditProvider):
-    router.db, router.llm, router.provider = db, llm, provider  # simple DI
+def setup(db: DB, llm: GigaChat, provider: ImageEditProvider, admin_bot: Bot | None = None):
+    router.db, router.llm, router.provider, router.admin_bot = db, llm, provider, admin_bot  # simple DI
 
 
 def _db() -> DB:
@@ -196,11 +196,12 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
     wait = await cb.message.answer(texts.WORKING)
     t0 = time.time()
     try:
-        data = (await bot.download(job["file_id"])).read()
+        data = original = (await bot.download(job["file_id"])).read()
+        cost_usd = 0.0
         if plan.is_ai:
             ai = await router.provider.edit(data, plan.ai_prompt, plan.ai_ratio)
             db.add_job_cost(job_id, provider_cost_usd=ai.cost_usd)
-            data = ai.data
+            cost_usd, data = ai.cost_usd, ai.data
         src_fmt = json.loads(job["image_info"]).get("format")
         res = await asyncio.to_thread(pipeline.run, data, plan.ops, "jpeg" if src_fmt == "mpo" else src_fmt)
     except Exception as e:
@@ -211,10 +212,16 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
         return
     new_bal = db.charge(uid, plan.price, job_id)
     db.update_job(job_id, status="done", price=plan.price, finished_at=int(time.time()))
-    db.event(uid, "delivered", job_id=job_id, ai=plan.is_ai, price=plan.price, seconds=round(time.time() - t0, 1),
+    seconds = round(time.time() - t0, 1)
+    db.event(uid, "delivered", job_id=job_id, ai=plan.is_ai, price=plan.price, seconds=seconds,
              width=res.width, height=res.height, kb=res.kb, fmt=res.fmt)
     await wait.delete()
     await cb.message.answer_document(
         BufferedInputFile(res.data, filename=f"imgrsz_{job_id}.{res.ext}"),
         caption=texts.done(res, plan.price, new_bal, plan.is_ai),
     )
+    asyncio.create_task(admin.notify(
+        router.admin_bot, db, job_id=job_id, user=cb.from_user, request=job["request"] or "", brief=plan.brief,
+        price=plan.price, cost_usd=cost_usd, seconds=seconds, original=original,
+        src_ext={"jpeg": "jpg", "mpo": "jpg", "heif": "heic"}.get(src_fmt, src_fmt or "bin"), result=res,
+    ))

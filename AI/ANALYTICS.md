@@ -10,7 +10,7 @@
 | `brief_edit` | ✏️ pressed | job_id |
 | `brief_failed` | LLM error | job_id, error |
 | `refused` | ethics refusal | job_id, reason |
-| `insufficient_balance` | not enough r. | job_id, price, balance |
+| `insufficient_balance` | not enough р. | job_id, price, balance |
 | `confirmed` | ✅ pressed | job_id, ai, price |
 | `delivered` | result sent | job_id, ai, price, seconds, width, height, kb, fmt |
 | `failed` | processing error (no charge) | job_id, error |

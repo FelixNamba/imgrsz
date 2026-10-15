@@ -19,8 +19,8 @@ IT and office Telegram users with an urgent upload task will hand the fix to a b
 | F3 | Edit → re-brief with the user's correction (max 5 iterations) |
 | F4 | Confirm → the deterministic pipeline (Pillow) runs, plus an AI edit (image provider) when needed |
 | F5 | The result is sent as a document with the charge, the balance and an AI-processing disclaimer |
-| F6 | New user gets a 500 r. welcome bonus (once) |
-| F7 | Pricing: brief free · technical edit 5 r. · AI edit 30 r. |
+| F6 | New user gets a 500 р. welcome bonus (once) |
+| F7 | Pricing: brief free · technical edit 5 р. · AI edit 30 р. |
 | F8 | All output is stripped of metadata (EXIF/XMP/IPTC/C2PA) |
 | F9 | Events and real provider cost are logged; `stats.json` is exported every 5 min |
 | F10 | Moderation before generation: legal content only, no document forgery |
@@ -28,19 +28,19 @@ IT and office Telegram users with an urgent upload task will hand the fix to a b
 Out of scope: payments, web UI, batch processing.
 
 ## Supported operations
-Technical (5 r.): resize · crop to ratio · compress to ≤N KB · convert format · DPI / print size · pad · rotate · colour mode · strip metadata · flatten transparency · safe-zone preview.
-AI (30 r.): outpaint/extend · upscale/enhance · background remove/replace · object removal · reframe · restore · light/colour correction.
+Technical (5 р.): resize · crop to ratio · compress to ≤N KB · convert format · DPI / print size · pad · rotate · colour mode · strip metadata · flatten transparency · safe-zone preview.
+AI (30 р.): outpaint/extend · upscale/enhance · background remove/replace · object removal · reframe · restore · light/colour correction.
 
 ## Metrics
 North star: **delivered results per week**.
 Funnel: start → image sent → brief shown → confirmed → delivered → 2nd job.
-Cost: provider cost per job (RUB) vs r. charged; brief iterations per job.
+Cost: provider cost per job (RUB) vs р. charged; brief iterations per job.
 
 ## Acceptance criteria (prototype → invest further)
 - ≥30 activated users (sent ≥1 image) from ads in the first week
 - confirm → delivered ≥80%; brief shown → confirmed ≥40%
 - ≥25% of activated users make a 2nd job within 7 days
-- average real AI cost per AI job < 30 r. equivalent
+- average real AI cost per AI job < 30 р. equivalent
 - 0 moderation incidents
 
 ## Risks
