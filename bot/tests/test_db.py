@@ -50,3 +50,10 @@ def test_admins(db):
     db.add_admin(42, "felixnamba")
     db.add_admin(42, "felixnamba")
     assert db.admin_chats() == [42]
+
+
+def test_drop_user_gets_bonus_again(db):
+    db.ensure_user(7, "Tester", None, 500)
+    db.charge(7, 39, db.create_job(7, "f", {}))
+    assert db.drop_user("@tester") == 7 and db.drop_user("tester") is None
+    assert db.ensure_user(7, "Tester", None, 500) and db.balance(7) == 500

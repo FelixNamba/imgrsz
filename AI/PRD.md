@@ -20,16 +20,17 @@ IT and office Telegram users with an urgent upload task will hand the fix to a b
 | F4 | Confirm → the deterministic pipeline (Pillow) runs, plus an AI edit (image provider) when needed |
 | F5 | The result is sent as a document with the charge, the balance and an AI-processing disclaimer |
 | F6 | New user gets a 500 р. welcome bonus (once) |
-| F7 | Pricing: brief free · technical edit 5 р. · AI edit 30 р. |
+| F7 | Pricing: brief free · technical edit · AI edit (values in `bot/app/config.py`) |
 | F8 | All output is stripped of metadata (EXIF/XMP/IPTC/C2PA) |
 | F9 | Events and real provider cost are logged; `stats.json` is exported every 5 min |
+| F11 | Admin bot: copies of all results; `/drop @username` resets a user for testing |
 | F10 | Moderation before generation: legal content only, no document forgery |
 
 Out of scope: payments, web UI, batch processing.
 
 ## Supported operations
-Technical (5 р.): resize · crop to ratio · compress to ≤N KB · convert format · DPI / print size · pad · rotate · colour mode · strip metadata · flatten transparency · safe-zone preview.
-AI (30 р.): outpaint/extend · upscale/enhance · background remove/replace · object removal · reframe · restore · light/colour correction.
+Technical: resize · crop to ratio · compress to ≤N KB · convert format · DPI / print size · pad · rotate · colour mode · strip metadata · flatten transparency · safe-zone preview.
+AI: extend to any ratio (whole source kept) · upscale/enhance · background removal. No new scenes, no face changes: a resize service, not a photo editor.
 
 ## Metrics
 North star: **delivered results per week**.
@@ -40,7 +41,7 @@ Cost: provider cost per job (RUB) vs р. charged; brief iterations per job.
 - ≥30 activated users (sent ≥1 image) from ads in the first week
 - confirm → delivered ≥80%; brief shown → confirmed ≥40%
 - ≥25% of activated users make a 2nd job within 7 days
-- average real AI cost per AI job < 30 р. equivalent
+- average real AI cost per AI job ≤ $0.15 (≈ 1/3 of the AI price)
 - 0 moderation incidents
 
 ## Risks

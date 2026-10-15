@@ -49,7 +49,16 @@ Showcase image: `web/assets/architecture.svg`.
 `ADMIN_BOT_TOKEN` and `ADMIN_USERNAMES` (comma-separated, without @; default `felixnamba`). Bots cannot write first, so each admin sends `/start` to @imgrsz_admin_bot once; their `chat_id` is saved in the `admins` table. Others get "Нет доступа". Both bots poll from one process (two dispatchers). A notify failure never affects the user's result.
 
 ## Landing images
-`scripts/landing_assets.py` produces every landing image with the bot's own pipeline (real outputs, about $0.15 per full run). Gemini outputs at most 21:9, so the 468×60 hero banner is made by placing the photo small on a wide gray canvas (Pillow), letting the AI fill the gray area, then cropping. **TODO (product):** apply the same trick in the bot for ratios wider than 21:9.
+`scripts/landing_assets.py` produces every landing image with the bot's own pipeline (real outputs, about $0.15 per full run). The hero (limo 1360×1236 → 5120×1440, 900 КБ) is a real run of `bot/app/extend.py`.
+
+## AI extension to any ratio (`bot/app/extend.py`)
+Plan field `extend: "W:H"` (any ratio 1:10…10:1). Gemini outputs only fixed ratios (max 21:9 / 9:16) and crops when asked to zoom out, so:
+1. The source is pasted at native size on a flat gray canvas of the target ratio.
+2. In-range ratios: one call, padded to the nearest supported ratio, then cropped back.
+3. Wider/taller: windows of 21:9 (9:16) along the axis, each with 40% overlap on filled pixels, center-out.
+4. Only gray pixels (+32 px feather) are taken from the model, so the source is untouched.
+5. Lines the model left gray stay unfilled and get another window; max 6 calls, else the job fails (no charge).
+Typical cost: 32:9 → 2–3 calls (~$0.07–0.10); 468×60 → ~5 calls.
 
 ## Environment
 See `deploy/.env.example`. Secrets live only in `credentials.env` (gitignored).

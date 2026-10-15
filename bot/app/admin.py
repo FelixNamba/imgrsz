@@ -7,6 +7,7 @@ import html
 import logging
 
 from aiogram import Bot, Router
+from aiogram.filters import Command, CommandObject
 from aiogram.types import BufferedInputFile, InputMediaDocument, Message
 
 from .config import config
@@ -20,14 +21,33 @@ def setup(db: DB):
     router.db = db
 
 
-@router.message()
-async def any_message(msg: Message):
-    username = (msg.from_user.username or "").lower()
-    if username not in config.admin_usernames:
+def _is_admin(msg: Message) -> bool:
+    return (msg.from_user.username or "").lower() in config.admin_usernames
+
+
+@router.message(Command("drop"))
+async def drop(msg: Message, command: CommandObject):
+    """/drop @username — the user becomes new again (welcome text + bonus) for testing. /drop alone drops yourself."""
+    if not _is_admin(msg):
         await msg.answer("Нет доступа.")
         return
-    router.db.add_admin(msg.chat.id, username)
-    await msg.answer("✅ Вы администратор. Сюда будут приходить все результаты обработки.")
+    who = (command.args or msg.from_user.username or str(msg.from_user.id)).split()[0]
+    tg_id = router.db.drop_user(who)
+    if tg_id is None:
+        await msg.answer(f"Пользователь {html.escape(who)} не найден.")
+        return
+    router.db.event(msg.from_user.id, "admin_drop_user", dropped=tg_id)
+    await msg.answer(f"🗑 {html.escape(who)} (<code>{tg_id}</code>) сброшен. Следующий /start в основном боте — как у нового пользователя.")
+
+
+@router.message()
+async def any_message(msg: Message):
+    if not _is_admin(msg):
+        await msg.answer("Нет доступа.")
+        return
+    router.db.add_admin(msg.chat.id, (msg.from_user.username or "").lower())
+    await msg.answer("✅ Вы администратор. Сюда будут приходить все результаты обработки.\n"
+                     "/drop @username — сбросить пользователя для теста (без аргумента — себя).")
 
 
 async def notify(admin_bot: Bot | None, db: DB, *, job_id: int, user, request: str, brief: str,

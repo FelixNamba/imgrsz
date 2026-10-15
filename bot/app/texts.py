@@ -17,8 +17,8 @@ HELP = (
     "3. Получите готовый файл.\n\n"
     "<b>Умею:</b> размер в пикселях, пропорции, вес файла, формат (JPG/PNG/WEBP, HEIC→JPG), DPI и размер для печати, "
     "поля, поворот, ч/б, удаление метаданных — "
-    f"{config.price_technical} r.\n"
-    f"<b>С ИИ:</b> расширить картинку, повысить качество, заменить/убрать фон, убрать объект, реставрация — {config.price_ai} r.\n\n"
+    f"{config.price_technical} р.\n"
+    f"<b>С ИИ:</b> расширить картинку до любой пропорции, повысить качество, убрать фон — {config.price_ai} р.\n\n"
     "/balance — баланс"
 )
 ASK_TASK = "Что нужно сделать с изображением? Опишите своими словами 👇"
@@ -39,9 +39,8 @@ def balance(value: int) -> str:
     return f"💰 Баланс: <b>{value} р.</b>"
 
 
-def brief(text: str, price: int, is_ai: bool) -> str:
-    kind = "ИИ-обработка" if is_ai else "техническая правка"
-    return f"📝 <b>Бриф</b>\n{text}\n\nСтоимость: <b>{price} р.</b> ({kind})"
+def brief(text: str, price: int) -> str:
+    return f"📝 <b>Бриф</b>\n{text}\n\nСтоимость: <b>{price} р.</b>"
 
 
 def no_money(price: int, bal: int) -> str:
@@ -52,6 +51,6 @@ def done(res, price: int, bal: int, is_ai: bool) -> str:
     dpi = f", {res.dpi} DPI" if res.dpi else ""
     return (
         f"✅ Готово: {res.width}×{res.height}, {res.ext.upper()}, {res.kb} КБ{dpi}\n"
-        f"Списано {price} р. · Остаток {bal} r.\n\n"
+        f"Списано {price} р. · Остаток {bal} р.\n\n"
         f"{DISCLAIMER_AI if is_ai else DISCLAIMER_TECH}"
     )

@@ -111,6 +111,19 @@ class DB:
                 self.conn.execute("ROLLBACK")
                 raise
 
+    def drop_user(self, who: str) -> int | None:
+        """Admin test helper: forget a user (by @username or tg_id) so the next /start is a new user
+        with a fresh welcome bonus. Jobs and events stay for analytics. Returns the dropped tg_id."""
+        who = who.strip().lstrip("@")
+        row = self.one("SELECT tg_id FROM users WHERE tg_id=?", (int(who),)) if who.isdigit() else \
+            self.one("SELECT tg_id FROM users WHERE lower(username)=?", (who.lower(),))
+        if not row:
+            return None
+        with self.lock:
+            self.conn.execute("DELETE FROM ledger WHERE tg_id=?", (row["tg_id"],))
+            self.conn.execute("DELETE FROM users WHERE tg_id=?", (row["tg_id"],))
+        return row["tg_id"]
+
     # jobs
     def create_job(self, tg_id: int, file_id: str, image_info: dict) -> int:
         with self.lock:

@@ -1,5 +1,6 @@
 import pytest
 
+from app.config import config
 from app.plan import PlanError, parse_plan
 
 
@@ -10,7 +11,14 @@ def test_technical_price():
 
 def test_ai_price():
     p = parse_plan({"brief": "x", "ai_prompt": "extend", "ai_ratio": "16:9"})
-    assert p.price == 30 and p.ai_ratio == "16:9"
+    assert p.price == config.price_ai and p.ai_ratio == "16:9"
+
+
+def test_extend_any_ratio():
+    p = parse_plan({"brief": "x", "extend": "468:60", "ops": [{"op": "resize", "mode": "exact", "width": 468, "height": 60}]})
+    assert p.extend == "468:60" and p.is_ai and p.price == config.price_ai
+    with pytest.raises(PlanError):
+        parse_plan({"brief": "x", "extend": "100:1"})
 
 
 def test_unknown_op_rejected():

@@ -1,7 +1,7 @@
 """Generate landing images with the bot's own pipeline (real outputs, not mockups).
 
 Usage (repo root):  set -a; . ./credentials.env; set +a
-                    .venv/bin/python scripts/landing_assets.py [source|hero|features|all]
+                    .venv/bin/python scripts/landing_assets.py [source|logo|hero|features|all]
 Writes to web/assets/img/. Costs ~$0.03 per AI call.
 """
 import asyncio
@@ -12,16 +12,17 @@ import sys
 from pathlib import Path
 
 import httpx
-from PIL import Image
+from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bot"))
-from app import pipeline  # noqa: E402
+from app import extend, pipeline  # noqa: E402
 from app.config import config  # noqa: E402
 from app.providers import OpenRouterProvider  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "web" / "assets" / "img"
 OUT.mkdir(parents=True, exist_ok=True)
 SRC = OUT / "source.jpg"
+HERO_SRC = Path(__file__).resolve().parents[1] / "initial" / "ch_pski-LzId5ONySUI-unsplash.jpg"  # Unsplash, gitignored
 cost = 0.0
 
 SOURCE_PROMPT = (
@@ -67,21 +68,29 @@ async def source():
 
 
 async def hero():
-    src = SRC.read_bytes()
-    print("before", pipeline.describe(src))
-    # Gemini outputs at most 21:9 and ignores "zoom out", so: place the photo small on a wide gray canvas
-    # (Pillow), let the AI fill only the gray area, then crop the 468x60 (7.8:1) band — the whole card fits.
-    img = pipeline.load(src).convert("RGB")
-    img.thumbnail((560, 560), Image.LANCZOS)
-    canvas = Image.new("RGB", (2100, 900), (128, 128, 128))
-    canvas.paste(img, ((2100 - img.width) // 2, (900 - img.height) // 2))
-    buf = io.BytesIO()
-    canvas.save(buf, "JPEG", quality=95)
-    wider = await ai_edit(buf.getvalue(), "The photo in the center is surrounded by flat gray empty areas. Fill all gray areas "
-                                          "by seamlessly continuing the dark green velvet fabric and the green backlit background "
-                                          "of the central photo, so it becomes one natural wide photo. Do not change the card.", "21:9")
-    print("hero", save("hero_after", wider, [{"op": "resize", "mode": "fill", "width": 468, "height": 60}, {"op": "format", "format": "jpeg"}]))
-    print("hero_2x", save("hero_after@2x", wider, [{"op": "resize", "mode": "fill", "width": 936, "height": 120}, {"op": "format", "format": "jpeg"}]))
+    """Hero: the bot's real 'upsize to 5120x1440 and compress' run on a photo from initial/ (bot's extend.py)."""
+    global cost
+    raw = HERO_SRC.read_bytes()
+    before = pipeline.describe(raw)
+    img, c, calls = await extend.extend(OpenRouterProvider(), raw, "5120:1440")
+    cost += c
+    full = pipeline.encode(img.resize((5120, 1440), Image.LANCZOS), "jpeg", max_kb=900)
+    meta = {"before": before, "after": {"w": full.width, "h": full.height, "kb": full.kb, "calls": calls}}
+    meta["before_web"] = save("hero_before", raw, [{"op": "resize", "mode": "fit", "width": 480}, {"op": "format", "format": "webp"}])
+    meta["after_web"] = save("hero_after", full.data, [{"op": "resize", "mode": "fit", "width": 1280}, {"op": "format", "format": "webp"}])
+    (OUT / "hero.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
+    print(json.dumps(meta, ensure_ascii=False))
+
+
+def logo():
+    """Brand mark: lower-right logo from initial/resize_logos.png, cut to a circle with transparent corners."""
+    sheet = Image.open(Path(__file__).resolve().parents[1] / "initial" / "resize_logos.png").convert("RGB")
+    tile = sheet.crop((662, 657, 1121, 1116)).resize((256, 256), Image.LANCZOS).convert("RGBA")
+    mask = Image.new("L", (1024, 1024), 0)
+    ImageDraw.Draw(mask).ellipse((6, 6, 1018, 1018), fill=255)
+    tile.putalpha(mask.resize((256, 256), Image.LANCZOS))
+    tile.save(OUT / "logo.png", optimize=True)
+    tile.resize((64, 64), Image.LANCZOS).save(OUT / "favicon.png", optimize=True)
 
 
 async def features():
@@ -116,6 +125,8 @@ async def features():
 async def main(what: str):
     if what in ("source", "all"):
         await source()
+    if what in ("logo", "all"):
+        logo()
     if what in ("hero", "all"):
         await hero()
     if what in ("features", "all"):

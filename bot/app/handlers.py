@@ -9,7 +9,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import BufferedInputFile, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from . import admin, pipeline, texts
+from . import admin, extend, pipeline, texts
 from .config import config
 from .db import DB
 from .llm import GigaChat
@@ -152,7 +152,7 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         return
     await state.set_state(None)
     db.event(msg.from_user.id, "brief_shown", job_id=job_id, iteration=job["iterations"] + 1, ai=plan.is_ai, price=plan.price)
-    await wait.edit_text(texts.brief(plan.brief, plan.price, plan.is_ai), reply_markup=_kb(job_id))
+    await wait.edit_text(texts.brief(plan.brief, plan.price), reply_markup=_kb(job_id))
 
 
 @router.callback_query(F.data.startswith("edit:"))
@@ -198,10 +198,16 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
     try:
         data = original = (await bot.download(job["file_id"])).read()
         cost_usd = 0.0
-        if plan.is_ai:
+        if plan.ai_prompt:
             ai = await router.provider.edit(data, plan.ai_prompt, plan.ai_ratio)
             db.add_job_cost(job_id, provider_cost_usd=ai.cost_usd)
             cost_usd, data = ai.cost_usd, ai.data
+        if plan.extend:
+            img, ext_cost, calls = await extend.extend(router.provider, data, plan.extend)
+            db.add_job_cost(job_id, provider_cost_usd=ext_cost)
+            cost_usd += ext_cost
+            data = pipeline.encode(img, "png").data
+            db.event(uid, "extended", job_id=job_id, ratio=plan.extend, calls=calls, cost_usd=round(ext_cost, 4))
         src_fmt = json.loads(job["image_info"]).get("format")
         res = await asyncio.to_thread(pipeline.run, data, plan.ops, "jpeg" if src_fmt == "mpo" else src_fmt)
     except Exception as e:

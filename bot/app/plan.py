@@ -37,6 +37,16 @@ def _ratio(v):
     return v
 
 
+def _extend_ratio(v):
+    """Final aspect ratio for AI extension: any W:H (e.g. 468:60), between 1:10 and 10:1."""
+    if not isinstance(v, str) or not re.match(r"^\d{1,5}:\d{1,5}$", v):
+        raise PlanError("extend must look like 32:9")
+    a, b = map(int, v.split(":"))
+    if not a or not b or not 0.1 <= a / b <= 10:
+        raise PlanError("extend ratio out of range 1:10..10:1")
+    return v
+
+
 def _color(v):
     v = v or "#ffffff"
     if not HEX_RE.match(v):
@@ -97,12 +107,13 @@ class Plan:
     ops: list[dict] = field(default_factory=list)
     ai_prompt: str | None = None
     ai_ratio: str | None = None
+    extend: str | None = None  # final W:H; executed by extend.py, keeps the whole source
     question: str | None = None
     refuse: str | None = None
 
     @property
     def is_ai(self) -> bool:
-        return bool(self.ai_prompt)
+        return bool(self.ai_prompt or self.extend)
 
     @property
     def price(self) -> int:
@@ -130,6 +141,7 @@ def parse_plan(data: dict) -> Plan:
     ai_ratio = data.get("ai_ratio") or None
     if ai_ratio is not None and ai_ratio not in AI_RATIOS:
         ai_ratio = None
+    extend = _extend_ratio(data["extend"]) if data.get("extend") else None
     if not brief and not question:
         raise PlanError("empty brief")
-    return Plan(brief=brief, ops=ops, ai_prompt=ai_prompt, ai_ratio=ai_ratio, question=question)
+    return Plan(brief=brief, ops=ops, ai_prompt=ai_prompt, ai_ratio=ai_ratio, extend=extend, question=question)

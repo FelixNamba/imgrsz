@@ -1,0 +1,30 @@
+{
+ "before": {
+  "width": 1360,
+  "height": 1236,
+  "format": "jpeg",
+  "mode": "RGB",
+  "size_kb": 1653,
+  "has_alpha": false,
+  "has_metadata": true,
+  "dpi": 72
+ },
+ "after": {
+  "w": 5120,
+  "h": 1440,
+  "kb": 900,
+  "calls": 2
+ },
+ "before_web": {
+  "file": "hero_before.webp",
+  "w": 480,
+  "h": 436,
+  "kb": 60
+ },
+ "after_web": {
+  "file": "hero_after.webp",
+  "w": 1280,
+  "h": 360,
+  "kb": 134
+ }
+}

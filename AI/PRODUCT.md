@@ -26,17 +26,24 @@ flowchart TD
 Edit loop limit: 5 iterations per image.
 
 ## Pricing
-Brief 0 р. · technical 5 р. · AI 30 р. · welcome 500 р. Charged only after successful delivery.
+Values live in `bot/app/config.py` (brief free, technical, AI, welcome bonus). The brief shows only the price, no category. Charged only after successful delivery. AI price covers the worst case of a wide extension (up to ~$0.15 of model calls).
 
 ## Supported tasks (examples users write)
 | Request | Plan |
 |---|---|
 | «квадрат для госуслуг до 1 МБ» | crop_ratio 1:1 → max_size_kb 1000 |
 | «фото 35×45 для визы» | print_size 35×45@300dpi → jpeg |
-| «расширь до 16:9 для обложки» | AI outpaint (ai_ratio 16:9) → resize |
-| «сделай белый фон» | AI background replace → jpeg |
+| «расширь до 16:9 для обложки» | extend 16:9 → resize |
+| «баннер 468×60», «5120×1440» | extend 468:60 / 5120:1440 (whole source kept, see TECH) → resize exact |
+| «убери фон» | AI background removal (plain white) → jpeg |
 | «HEIC в JPG, убери метаданные» | format jpeg |
 | «до 200 КБ, ширина 800» | resize fit 800 → max_size_kb 200 |
+
+## Positioning
+A resize service, not a photo editor. AI only extends edges, restores detail and removes the background (to plain white); it does not draw new scenes or change people.
+
+## Admin bot (@imgrsz_admin_bot)
+Admins from `ADMIN_USERNAMES` get every source + result with request, brief, price and real cost. `/drop @username` (or `/drop` for yourself) forgets a user so the next `/start` is a new user with a fresh bonus — for testing onboarding.
 
 ## Bot profile (set in @BotFather)
 - **Name:** Поправь размер картинки (landing brand: Image resizer)
