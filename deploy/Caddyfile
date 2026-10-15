@@ -1,0 +1,19 @@
+# DOMAIN comes from credentials.env; until the domain is ready use DOMAIN=:80 (plain HTTP by IP).
+{$DOMAIN::80} {
+	encode gzip
+	handle /stats.json {
+		root * /srv/stats
+		header Cache-Control "no-store"
+		file_server
+	}
+	handle {
+		root * /srv/web
+		try_files {path} {path}/index.html
+		file_server
+	}
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		-Server
+	}
+}

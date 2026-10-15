@@ -1,0 +1,28 @@
+# Run from repo root: docker compose -f deploy/docker-compose.yml up -d --build
+services:
+  bot:
+    build: { context: .., dockerfile: deploy/Dockerfile }
+    image: imgrsz-bot:latest
+    restart: unless-stopped
+    env_file: ../credentials.env
+    volumes:
+      - ../data:/data
+      - www-stats:/srv/www
+    mem_limit: 512m
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    env_file: ../credentials.env
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - ../web:/srv/web:ro
+      - www-stats:/srv/stats:ro
+      - caddy-data:/data
+    logging: { driver: json-file, options: { max-size: "10m", max-file: "3" } }
+
+volumes:
+  www-stats:
+  caddy-data:
