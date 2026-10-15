@@ -1,1 +1,87 @@
-<!doctype html><meta charset="utf-8"><title>imgrsz</title><p>imgrsz — скоро.
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>imgrsz — подгоним картинку под любые требования</title>
+<meta name="description" content="Telegram-бот: размер, пропорции, вес, формат, метаданные. Расширит и улучшит изображение с ИИ. 500 r. в подарок.">
+<meta property="og:title" content="imgrsz — картинка не грузится? Подгоним за минуту">
+<meta property="og:description" content="Пришлите изображение в Telegram и скажите, что нужно. Остальное — наша забота.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230A84FF'/><path d='M28 64V36h44v28z' fill='none' stroke='white' stroke-width='7' stroke-dasharray='10 7'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<header class="top">
+  <a class="logo" href="/">imgrsz</a>
+  <nav class="chips small">
+    <a class="chip" href="#prices">цены</a>
+    <a class="chip" href="/case/">кейс</a>
+    <a class="chip accent" href="https://t.me/imgrsz_bot?start=landing_nav">открыть бота</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-text">
+      <p class="eyebrow">Telegram-бот · ИИ</p>
+      <h1>Картинка не&nbsp;грузится?<br>Подгоним за&nbsp;минуту</h1>
+      <p class="lead">Форма требует 1080×1080, до&nbsp;1&nbsp;МБ, без EXIF, а&nbsp;фото нужно шире, чем есть? Пришлите его боту и&nbsp;скажите своими словами, что нужно.</p>
+      <div class="chips">
+        <span class="chip">1080×1080</span><span class="chip">до 500 КБ</span><span class="chip">16:9</span>
+        <span class="chip">35×45 мм</span><span class="chip">HEIC → JPG</span><span class="chip">без метаданных</span>
+        <span class="chip">дорисовать края</span><span class="chip">белый фон</span>
+      </div>
+      <a class="cta" href="https://t.me/imgrsz_bot?start=landing_hero">Открыть в Telegram&nbsp;→</a>
+      <p class="note">🎁 500 r. на старте — хватит на 16 ИИ-обработок</p>
+    </div>
+
+    <div class="phone" aria-label="Пример диалога с ботом">
+      <div class="notch"></div>
+      <div class="chat">
+        <div class="msg me">
+          <div class="pic pic-before"><span>800×1000</span></div>
+          нужно 16:9 для обложки, до 500 КБ
+        </div>
+        <div class="msg bot">
+          <b>📝 Бриф</b><br>Расширю фото до 16:9, дорисую фон, сожму JPG до 500 КБ.<br>Стоимость: <b>30 r.</b>
+          <div class="btns"><span>✅ Подтвердить</span><span>✏️ Поправить</span></div>
+        </div>
+        <div class="msg bot">
+          <div class="pic pic-after"><span>1920×1080</span></div>
+          ✅ Готово: 1920×1080, JPG, 412 КБ<br>Списано 30 r. · Остаток 470 r.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="how">
+    <div class="step"><span class="num">1</span><h3>Пришлите</h3><p>картинку и&nbsp;задачу своими словами</p></div>
+    <div class="step"><span class="num">2</span><h3>Подтвердите</h3><p>бриф или поправьте его</p></div>
+    <div class="step"><span class="num">3</span><h3>Получите</h3><p>файл, который пройдёт проверку</p></div>
+  </section>
+
+  <section class="prices" id="prices">
+    <h2>Цены</h2>
+    <p class="lead center">Платите только за&nbsp;готовый результат. Не&nbsp;получилось — не&nbsp;списываем.</p>
+    <div class="cards">
+      <div class="card"><p class="price">0 r.</p><h3>Бриф</h3><p>Разбор задачи и&nbsp;уточнения</p></div>
+      <div class="card"><p class="price">5 r.</p><h3>Техническая правка</h3><p>Размер, пропорции, вес, формат, DPI, поля, метаданные</p></div>
+      <div class="card hl"><p class="price">30 r.</p><h3>1 генерация с ИИ</h3><p>Расширить, улучшить качество, заменить фон, убрать лишнее</p></div>
+    </div>
+    <p class="note center">🎁 Новым пользователям — 500 r. Пополнение баланса появится позже.</p>
+    <a class="cta center-block" href="https://t.me/imgrsz_bot?start=landing_prices">Попробовать бесплатно&nbsp;→</a>
+  </section>
+</main>
+
+<footer>
+  <p><b>imgrsz</b> — прототип сервиса. Не является публичной офертой; «r.» — внутренние баллы сервиса, не денежные средства.</p>
+  <p>Изображения обрабатываются автоматически с помощью ИИ-моделей (GigaChat, Google Gemini через OpenRouter). Результат может содержать неточности — проверяйте его перед загрузкой.</p>
+  <p>Запрещено загружать незаконный контент, подделывать документы, печати и подписи, изменять внешность на фото для документов, обрабатывать изображения других людей без их согласия. Такие запросы отклоняются.</p>
+  <p>Мы храним идентификатор Telegram, историю запросов и технические данные для работы сервиса и аналитики. Сами изображения мы не храним (только ссылку Telegram на файл) и не используем их для обучения моделей; изображения передаются ИИ-провайдерам для обработки. Метаданные (EXIF, GPS, ИИ-метки) из результата удаляются.</p>
+  <p class="muted">© 2026 imgrsz · <a href="/case/">кейс</a> · <a href="https://github.com/FelixNamba/imgrsz">GitHub</a></p>
+</footer>
+</body>
+</html>
