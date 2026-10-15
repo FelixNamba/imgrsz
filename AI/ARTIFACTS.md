@@ -15,7 +15,10 @@
 | 11 | Product doc (flows, texts) | `AI/PRODUCT.md` | ✅ |
 | 12 | Analytics spec | `AI/ANALYTICS.md` | ✅ |
 | 13 | Architecture image (showcase) | `web/assets/architecture.svg` | ✅ |
-| 14 | Landing visuals | `web/assets/` (CSS phone mockup) | ✅ |
+| 14 | Landing visuals | `web/assets/` (real bot outputs: `web/assets/img/`) | ✅ |
 | 15 | Ad creatives, targeting, UTM | `ads/` | ✅ |
-| 16 | Yandex Metrica counter | landing + case | ⏸ skipped (service down) |
-| 17 | VPS access check script | `scripts/check_access.sh` | ✅ |
+| 16 | Admin bot (copies of all results) | @imgrsz_admin_bot · `bot/app/admin.py` | ✅ |
+| 17 | Landing image generator | `scripts/landing_assets.py` | ✅ |
+| 18 | Font options (temporary) | `/fonts/` · `web/fonts/index.html` | ⏳ choose |
+| 19 | Yandex Metrica counter | landing + case | ⏸ skipped (service down) |
+| 20 | VPS access check script | `scripts/check_access.sh` | ✅ |

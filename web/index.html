@@ -3,64 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>imgrsz — подгоним картинку под любые требования</title>
-<meta name="description" content="Telegram-бот: размер, пропорции, вес, формат, метаданные. Расширит и улучшит изображение с ИИ. 500 р. в подарок.">
-<meta property="og:title" content="imgrsz — картинка не грузится? Подгоним за минуту">
-<meta property="og:description" content="Пришлите изображение в Telegram и скажите, что нужно. Остальное — наша забота.">
+<title>Image resizer — поправь размер картинки</title>
+<meta name="description" content="Telegram-бот поправит размер, вес и формат картинки. Нужно шире — дорисует края с ИИ. 500 р. в подарок.">
+<meta property="og:title" content="Image resizer — поправь размер картинки">
+<meta property="og:description" content="Даже если нужно расширить, бот сможет дорисовать картинку.">
+<meta property="og:image" content="/assets/img/hero_after@2x.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%230A84FF'/><path d='M28 64V36h44v28z' fill='none' stroke='white' stroke-width='7' stroke-dasharray='10 7'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/assets/style.css">
 </head>
 <body>
 <header class="top">
-  <a class="logo" href="/">imgrsz</a>
+  <a class="logo" href="/">Image resizer</a>
   <nav class="chips small">
-    <a class="chip" href="#prices">цены</a>
-    <a class="chip" href="/case/">кейс</a>
-    <a class="chip accent" href="https://t.me/imgrsz_bot?start=landing_nav">открыть бота</a>
+    <a class="chip" href="#features">Возможности</a>
+    <a class="chip" href="#prices">Цены</a>
+    <a class="chip accent" href="https://t.me/imgrsz_bot?start=landing_nav">Открыть бота</a>
   </nav>
 </header>
 
 <main>
   <section class="hero">
-    <div class="hero-text">
-      <p class="eyebrow">Telegram-бот · ИИ</p>
-      <h1>Картинка не&nbsp;грузится?<br>Подгоним за&nbsp;минуту</h1>
-      <p class="lead">Форма требует 1080×1080, до&nbsp;1&nbsp;МБ, без EXIF, а&nbsp;фото нужно шире, чем есть? Пришлите его боту и&nbsp;скажите своими словами, что нужно.</p>
-      <div class="chips">
-        <span class="chip">1080×1080</span><span class="chip">до 500 КБ</span><span class="chip">16:9</span>
-        <span class="chip">35×45 мм</span><span class="chip">HEIC → JPG</span><span class="chip">без метаданных</span>
-        <span class="chip">дорисовать края</span><span class="chip">белый фон</span>
-      </div>
-      <a class="cta" href="https://t.me/imgrsz_bot?start=landing_hero">Открыть в Telegram&nbsp;→</a>
-      <p class="note">🎁 500 р. на старте — хватит на 16 ИИ-обработок</p>
-    </div>
-
-    <div class="phone" aria-label="Пример диалога с ботом">
-      <div class="notch"></div>
-      <div class="chat">
-        <div class="msg me">
-          <div class="pic pic-before"><span>800×1000</span></div>
-          нужно 16:9 для обложки, до 500 КБ
-        </div>
-        <div class="msg bot">
-          <b>📝 Бриф</b><br>Расширю фото до 16:9, дорисую фон, сожму JPG до 500 КБ.<br>Стоимость: <b>30 р.</b>
-          <div class="btns"><span>✅ Подтвердить</span><span>✏️ Поправить</span></div>
-        </div>
-        <div class="msg bot">
-          <div class="pic pic-after"><span>1920×1080</span></div>
-          ✅ Готово: 1920×1080, JPG, 412 КБ<br>Списано 30 р. · Остаток 470 р.
-        </div>
-      </div>
-    </div>
+    <p class="eyebrow">Telegram-бот</p>
+    <h1>Поправь размер картинки</h1>
+    <p class="lead">Даже если нужно расширить, бот сможет дорисовать картинку</p>
+    <a class="cta" href="https://t.me/imgrsz_bot?start=landing_hero">Открыть в Telegram&nbsp;→</a>
+    <p class="note">🎁 500 р. на старте в подарок — хватит на 16 ИИ-обработок</p>
   </section>
 
-  <section class="how">
-    <div class="step"><span class="num">1</span><h3>Пришлите</h3><p>картинку и&nbsp;задачу своими словами</p></div>
-    <div class="step"><span class="num">2</span><h3>Подтвердите</h3><p>бриф или поправьте его</p></div>
-    <div class="step"><span class="num">3</span><h3>Получите</h3><p>файл, который пройдёт проверку</p></div>
+  <section class="demo" aria-label="Пример: квадратное фото превращается в баннер 468×60">
+    <div class="tag before"><b>До</b><span>1200×1200</span><span>128 КБ, квадрат</span></div>
+
+    <div class="tg">
+      <div class="tg-head"><span class="tg-ava">П</span><div><b>Поправь размер картинки</b><small>бот</small></div></div>
+      <div class="tg-chat">
+        <div class="tg-day">Сегодня</div>
+        <div class="tg-msg out photo">
+          <img src="/assets/img/source.jpg" width="1200" height="1200" alt="Исходное фото: чёрная карта на зелёном бархате">
+          <p>Нужен баннер 468×60, края дорисуй<span class="tg-time">16:42 <i>✓✓</i></span></p>
+        </div>
+        <div class="tg-msg in">
+          <p><b>📝 Бриф</b><br>Расширю фото с ИИ: дорисую фон по краям и подгоню под 468×60, JPG.<br><br>Стоимость: <b>30 р.</b> (ИИ-обработка)<span class="tg-time">16:42</span></p>
+        </div>
+        <div class="tg-kb"><span>✅ Подтвердить</span><span>✏️ Поправить</span></div>
+        <div class="tg-msg in photo">
+          <img class="banner" src="/assets/img/hero_after@2x.jpg" width="936" height="120" alt="Результат: баннер 468×60 с дорисованными краями">
+          <p>✅ Готово: 468×60, JPG, 5 КБ<br>Списано 30 р. · Остаток 470 р.<br><br><span class="dim">ℹ️ Изображение изменено с помощью ИИ.</span><span class="tg-time">16:43</span></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tag after"><b>После</b><span>468×60</span><span>Края дорисованы с&nbsp;ИИ</span></div>
+  </section>
+
+  <section class="features" id="features">
+    <h2>Что умеет бот?</h2>
+
+    <article class="feature">
+      <div class="f-text"><h3>Изменить размер</h3><p>Любые пиксели и&nbsp;пропорции: 1080×1080, 16:9, 35×45&nbsp;мм для документов.</p><p class="f-price">5 р.</p></div>
+      <figure class="pair">
+        <div><img src="/assets/img/f_resize_before.webp" width="480" height="480" alt="Квадратное исходное фото" loading="lazy"><figcaption>1200×1200</figcaption></div>
+        <span class="arrow">→</span>
+        <div class="wide"><img src="/assets/img/f_resize_after.webp" width="1280" height="720" alt="То же фото в формате 16:9" loading="lazy"><figcaption>1280×720</figcaption></div>
+      </figure>
+    </article>
+
+    <article class="feature">
+      <div class="f-text"><h3>Улучшить качество</h3><p>ИИ восстановит детали маленькой или размытой картинки и&nbsp;увеличит её.</p><p class="f-price">30 р.</p></div>
+      <figure class="pair">
+        <div><img class="pixelated" src="/assets/img/f_upscale_before_crop.png" width="48" height="48" alt="Фрагмент маленького фото 160×160 при увеличении" loading="lazy"><figcaption>160×160, 6 КБ · фрагмент</figcaption></div>
+        <span class="arrow">→</span>
+        <div><img src="/assets/img/f_upscale_after_crop.webp" width="144" height="144" alt="Тот же фрагмент после ИИ-улучшения до 1024×1024" loading="lazy"><figcaption>1024×1024 · фрагмент</figcaption></div>
+      </figure>
+    </article>
+
+    <article class="feature">
+      <div class="f-text"><h3>Уменьшить вес файла</h3><p>Сожмём до нужных КБ или МБ без заметной потери качества, сменим формат.</p><p class="f-price">5 р.</p></div>
+      <figure class="pair single">
+        <div><img src="/assets/img/f_weight.webp" width="480" height="480" alt="Сжатое фото" loading="lazy"><span class="badge">622 КБ → 97 КБ</span><figcaption>PNG → JPG, до 100 КБ</figcaption></div>
+      </figure>
+    </article>
+
+    <article class="feature">
+      <div class="f-text"><h3>Заменить фон</h3><p>Белый студийный фон для маркетплейса, документов или любой другой.</p><p class="f-price">30 р.</p></div>
+      <figure class="pair">
+        <div><img src="/assets/img/f_resize_before.webp" width="480" height="480" alt="Фото на зелёном фоне" loading="lazy"><figcaption>Исходник</figcaption></div>
+        <span class="arrow">→</span>
+        <div><img src="/assets/img/f_bg_after.webp" width="480" height="480" alt="То же фото на белом фоне" loading="lazy"><figcaption>Белый фон</figcaption></div>
+      </figure>
+    </article>
+
+    <article class="feature">
+      <div class="f-text"><h3>Чёрно-белое</h3><p>Монохромная версия для печати, документов или стиля.</p><p class="f-price">5 р.</p></div>
+      <figure class="pair">
+        <div><img src="/assets/img/f_resize_before.webp" width="480" height="480" alt="Цветное фото" loading="lazy"><figcaption>Цвет</figcaption></div>
+        <span class="arrow">→</span>
+        <div><img src="/assets/img/f_mono_after.webp" width="480" height="480" alt="Чёрно-белое фото" loading="lazy"><figcaption>Ч/б</figcaption></div>
+      </figure>
+    </article>
   </section>
 
   <section class="prices" id="prices">
@@ -68,8 +110,8 @@
     <p class="lead center">Платите только за&nbsp;готовый результат. Не&nbsp;получилось — не&nbsp;списываем.</p>
     <div class="cards">
       <div class="card"><p class="price">0 р.</p><h3>Бриф</h3><p>Разбор задачи и&nbsp;уточнения</p></div>
-      <div class="card"><p class="price">5 р.</p><h3>Техническая правка</h3><p>Размер, пропорции, вес, формат, DPI, поля, метаданные</p></div>
-      <div class="card hl"><p class="price">30 р.</p><h3>1 генерация с ИИ</h3><p>Расширить, улучшить качество, заменить фон, убрать лишнее</p></div>
+      <div class="card"><p class="price">5 р.</p><h3>Техническая правка</h3><p>Размер, пропорции, вес, формат, DPI, ч/б, метаданные</p></div>
+      <div class="card hl"><p class="price">30 р.</p><h3>1 генерация с ИИ</h3><p>Расширить, улучшить качество, заменить фон</p></div>
     </div>
     <p class="note center">🎁 Новым пользователям — 500 р. Пополнение баланса появится позже.</p>
     <a class="cta center-block" href="https://t.me/imgrsz_bot?start=landing_prices">Попробовать бесплатно&nbsp;→</a>
@@ -77,11 +119,12 @@
 </main>
 
 <footer>
-  <p><b>imgrsz</b> — прототип сервиса. Не является публичной офертой; «р.» — внутренние баллы сервиса, не денежные средства.</p>
+  <p><b>Image resizer</b> — прототип сервиса. Не является публичной офертой; «р.» — внутренние баллы сервиса, не денежные средства.</p>
   <p>Изображения обрабатываются автоматически с помощью ИИ-моделей (GigaChat, Google Gemini через OpenRouter). Результат может содержать неточности — проверяйте его перед загрузкой.</p>
+  <p>Сервис не предназначен для конфиденциальных данных: не загружайте документы и чувствительные изображения. Исходники и результаты могут просматриваться администратором для контроля качества и модерации.</p>
   <p>Запрещено загружать незаконный контент, подделывать документы, печати и подписи, изменять внешность на фото для документов, обрабатывать изображения других людей без их согласия. Такие запросы отклоняются.</p>
-  <p>Мы храним идентификатор Telegram, историю запросов и технические данные для работы сервиса и аналитики. Сами изображения мы не храним (только ссылку Telegram на файл) и не используем их для обучения моделей; изображения передаются ИИ-провайдерам для обработки. Метаданные (EXIF, GPS, ИИ-метки) из результата удаляются.</p>
-  <p class="muted">© 2026 imgrsz · <a href="/case/">кейс</a> · <a href="https://github.com/FelixNamba/imgrsz">GitHub</a></p>
+  <p>Мы храним идентификатор Telegram, историю запросов и технические данные для работы сервиса и аналитики. Метаданные (EXIF, GPS, ИИ-метки) из результата удаляются.</p>
+  <p class="muted">© 2026 Image resizer · <a href="https://t.me/imgrsz_bot?start=landing_footer">@imgrsz_bot</a></p>
 </footer>
 </body>
 </html>

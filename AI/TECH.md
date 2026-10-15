@@ -35,6 +35,7 @@ Showcase image: `web/assets/architecture.svg`.
 | `db.py` | SQLite schema, ledger, jobs, events |
 | `analytics.py` | `stats.json` export (atomic write) |
 | `texts.py` | all RU user-facing texts |
+| `admin.py` | admin bot (@imgrsz_admin_bot): copy of every result (original + output + request, brief, cost) to admins |
 
 ## Key decisions
 - **GigaChat cannot edit images** (only text2image), so image edits go to OpenRouter (`google/gemini-3.1-flash-lite-image`, about $0.034 per edit, measured). You can switch with `OPENROUTER_MODEL`.
@@ -43,6 +44,12 @@ Showcase image: `web/assets/architecture.svg`.
 - **Polling, not webhook:** there is no inbound port for the bot, and the setup is simpler for a single instance.
 - **SQLite:** a single writer and low volume make it a good fit. Move to Postgres with more than one instance.
 - **The stats exporter runs inside the bot process** (an asyncio task), so there is one container fewer on a 1 GB VPS.
+
+## Admin bot
+`ADMIN_BOT_TOKEN` and `ADMIN_USERNAMES` (comma-separated, without @; default `felixnamba`). Bots cannot write first, so each admin sends `/start` to @imgrsz_admin_bot once; their `chat_id` is saved in the `admins` table. Others get "Нет доступа". Both bots poll from one process (two dispatchers). A notify failure never affects the user's result.
+
+## Landing images
+`scripts/landing_assets.py` produces every landing image with the bot's own pipeline (real outputs, about $0.15 per full run). Gemini outputs at most 21:9, so the 468×60 hero banner is made by placing the photo small on a wide gray canvas (Pillow), letting the AI fill the gray area, then cropping. **TODO (product):** apply the same trick in the bot for ratios wider than 21:9.
 
 ## Environment
 See `deploy/.env.example`. Secrets live only in `credentials.env` (gitignored).

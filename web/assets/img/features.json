@@ -1,0 +1,58 @@
+{
+ "resize_before": {
+  "file": "f_resize_before.webp",
+  "w": 480,
+  "h": 480,
+  "kb": 18
+ },
+ "resize_after": {
+  "file": "f_resize_after.webp",
+  "w": 1280,
+  "h": 720,
+  "kb": 61
+ },
+ "upscale_before": {
+  "file": "f_upscale_before.webp",
+  "w": 480,
+  "h": 480,
+  "kb": 13,
+  "orig": {
+   "w": 160,
+   "h": 160,
+   "kb": 6
+  }
+ },
+ "upscale_after": {
+  "file": "f_upscale_after.webp",
+  "w": 480,
+  "h": 480,
+  "kb": 21,
+  "orig": {
+   "width": 1024,
+   "height": 1024,
+   "format": "jpeg",
+   "mode": "RGB",
+   "size_kb": 108,
+   "has_alpha": false,
+   "has_metadata": true
+  }
+ },
+ "weight": {
+  "before_kb": 622,
+  "after_kb": 97,
+  "w": 1200,
+  "h": 1200
+ },
+ "bg_after": {
+  "file": "f_bg_after.webp",
+  "w": 480,
+  "h": 480,
+  "kb": 7
+ },
+ "mono_after": {
+  "file": "f_mono_after.webp",
+  "w": 480,
+  "h": 480,
+  "kb": 15
+ }
+}
