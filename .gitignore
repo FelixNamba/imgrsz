@@ -1,0 +1,12 @@
+credentials.env
+*.env
+!deploy/.env.example
+.DS_Store
+__pycache__/
+*.pyc
+.venv/
+data/
+*.sqlite*
+web/stats.json
+initial/
+env/
