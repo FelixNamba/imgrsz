@@ -23,7 +23,8 @@ OVERLAP = 0.4  # share of every window taken from already-filled pixels (context
 PROMPT = (
     "This photo is surrounded by flat gray empty areas. Fill every gray area completely by seamlessly "
     "continuing the scene of the photo (background, surfaces, objects cut by the edge, lighting, perspective), "
-    "so it becomes one natural photo. Do not change anything that is not gray. No text, no borders, no gray left."
+    "so it becomes one natural photo. Complete objects cut by the photo edge, but never add a second copy of the main "
+    "subject or any new person, vehicle or animal. Do not change anything that is not gray. No text, no borders, no gray left."
 )
 _RATIOS = {r: (lambda a, b: a / b)(*map(int, r.split(":"))) for r in AI_RATIOS}
 _MAX_W, _MAX_T = max(_RATIOS.values()), min(_RATIOS.values())  # 21:9 and 9:16

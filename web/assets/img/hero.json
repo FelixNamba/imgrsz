@@ -9,10 +9,11 @@
   "has_metadata": true,
   "dpi": 72
  },
+ "before_jpg_kb": 416,
  "after": {
   "w": 5120,
   "h": 1440,
-  "kb": 900,
+  "kb": 890,
   "calls": 2
  },
  "before_web": {
@@ -25,6 +26,6 @@
   "file": "hero_after.webp",
   "w": 1280,
   "h": 360,
-  "kb": 134
+  "kb": 143
  }
 }

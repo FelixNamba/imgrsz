@@ -69,4 +69,4 @@ Then in Telegram: `/start` → send a photo with "квадрат 500x500" → a 
 Edit `credentials.env` locally → `scp` it to the server → `$DC up -d` (recreates the containers with the new env). Never commit it.
 
 ## 7. Domain switch-on
-Live: `DOMAIN=imgrsz.ru, www.imgrsz.ru` (A records `@`, `www` → server IP). Change: edit `credentials.env` → copy it to the server → `$DC up -d --force-recreate caddy`; HTTPS is issued automatically. `deploy/Caddyfile` redirects old `http://<IP>` links to the domain; when moving to a new VPS, update that IP. Back to IP-only (domain broken): `DOMAIN=:80` and delete the redirect block.
+Live: `DOMAIN="imgrsz.ru, www.imgrsz.ru"` (quoted, so `. credentials.env` works in a shell) (A records `@`, `www` → server IP). Change: edit `credentials.env` → copy it to the server → `$DC up -d --force-recreate caddy`; HTTPS is issued automatically. `deploy/Caddyfile` redirects old `http://<IP>` links to the domain; when moving to a new VPS, update that IP. Back to IP-only (domain broken): `DOMAIN=:80` and delete the redirect block.

@@ -75,7 +75,10 @@ async def hero():
     img, c, calls = await extend.extend(OpenRouterProvider(), raw, "5120:1440")
     cost += c
     full = pipeline.encode(img.resize((5120, 1440), Image.LANCZOS), "jpeg", max_kb=900)
-    meta = {"before": before, "after": {"w": full.width, "h": full.height, "kb": full.kb, "calls": calls}}
+    (OUT / "hero_after.jpg").write_bytes(full.data)  # full-size result, downloadable from the site
+    clean = pipeline.run(raw, [{"op": "format", "format": "jpeg"}])  # source without metadata
+    (OUT / "hero_before.jpg").write_bytes(clean.data)
+    meta = {"before": before, "before_jpg_kb": clean.kb, "after": {"w": full.width, "h": full.height, "kb": full.kb, "calls": calls}}
     meta["before_web"] = save("hero_before", raw, [{"op": "resize", "mode": "fit", "width": 480}, {"op": "format", "format": "webp"}])
     meta["after_web"] = save("hero_after", full.data, [{"op": "resize", "mode": "fit", "width": 1280}, {"op": "format", "format": "webp"}])
     (OUT / "hero.json").write_text(json.dumps(meta, ensure_ascii=False, indent=1))
