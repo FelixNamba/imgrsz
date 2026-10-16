@@ -17,3 +17,8 @@
 		-Server
 	}
 }
+
+# Old links by IP keep working: send them to the domain (remove if DOMAIN=:80 again, see AI/DEPLOY.md).
+http://185.200.86.246 {
+	redir https://imgrsz.ru{uri} permanent
+}

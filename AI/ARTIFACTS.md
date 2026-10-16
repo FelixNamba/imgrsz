@@ -4,9 +4,9 @@
 |---|---|---|---|
 | 1 | GitHub repo (public) | github.com/FelixNamba/imgrsz | ✅ |
 | 2 | Telegram bot | @imgrsz_bot · `bot/` | ✅ |
-| 3 | Landing page | `http://185.200.86.246/` · `web/index.html` | ✅ |
-| 4 | Showcase page | `http://185.200.86.246/case` · `web/case/index.html` | ✅ |
-| 5 | Live stats file | `http://185.200.86.246/stats.json` | ✅ |
+| 3 | Landing page | `https://imgrsz.ru/` · `web/index.html` | ✅ |
+| 4 | Showcase page | `https://imgrsz.ru/case` · `web/case/index.html` | ✅ |
+| 5 | Live stats file | `https://imgrsz.ru/stats.json` | ✅ |
 | 6 | Docker image + compose | `deploy/` | ✅ |
 | 7 | Deploy runbook (AI-tailored) | `AI/DEPLOY.md` | ✅ |
 | 8 | Plan | `AI/PLAN.md` | ✅ |

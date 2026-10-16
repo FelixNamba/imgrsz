@@ -4,7 +4,7 @@ Telegram bot [@imgrsz_bot](https://t.me/imgrsz_bot) that makes any image fit upl
 
 Send an image and describe the need in your own words → confirm the AI brief → get the file.
 
-- Landing: http://185.200.86.246/ · Case: http://185.200.86.246/case/
+- Landing: https://imgrsz.ru/ · Case: https://imgrsz.ru/case/
 - Stack: Python 3.12, aiogram 3, Pillow, GigaChat (brief), OpenRouter / Gemini (image edits), SQLite, Docker, Caddy
 
 ## Docs (`AI/`)

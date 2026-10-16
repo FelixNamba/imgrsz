@@ -36,7 +36,7 @@ Web-only changes (`web/`) go live on `git pull`; the directory is bind-mounted, 
 
 ## 3. Production down
 Work top to bottom and stop when it is fixed.
-1. **Which part?** `curl -s -o /dev/null -w "%{http_code}" http://185.200.86.246/` → web; send `/start` to the bot → bot.
+1. **Which part?** `curl -s -o /dev/null -w "%{http_code}" https://imgrsz.ru/` → web; send `/start` to the bot → bot.
 2. **Host alive?** `$SSH uptime`. No answer → reboot from the serverspace panel and go to step 3.
 3. **Containers:** `$SSH "cd /opt/imgrsz && $DC ps"`. Anything not `running` → `$DC up -d`.
 4. **Logs:** `$SSH "cd /opt/imgrsz && $DC logs --tail 100 bot"`.
@@ -69,4 +69,4 @@ Then in Telegram: `/start` → send a photo with "квадрат 500x500" → a 
 Edit `credentials.env` locally → `scp` it to the server → `$DC up -d` (recreates the containers with the new env). Never commit it.
 
 ## 7. Domain switch-on
-Set `DOMAIN=imgrsz.ru` in `credentials.env` (and `www`, if needed: `DOMAIN=imgrsz.ru, www.imgrsz.ru`) → copy it to the server → `$DC up -d caddy`. HTTPS is issued automatically.
+Live: `DOMAIN=imgrsz.ru, www.imgrsz.ru` (A records `@`, `www` → server IP). Change: edit `credentials.env` → copy it to the server → `$DC up -d --force-recreate caddy`; HTTPS is issued automatically. `deploy/Caddyfile` redirects old `http://<IP>` links to the domain; when moving to a new VPS, update that IP. Back to IP-only (domain broken): `DOMAIN=:80` and delete the redirect block.
