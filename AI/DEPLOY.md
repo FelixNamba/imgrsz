@@ -72,13 +72,13 @@ Edit `credentials.env` locally → `scp` it to the server → `$DC up -d` (recre
 Live: `DOMAIN="imgrsz.ru, www.imgrsz.ru"` (quoted, so `. credentials.env` works in a shell) (A records `@`, `www` → server IP). Change: edit `credentials.env` → copy it to the server → `$DC up -d --force-recreate caddy`; HTTPS is issued automatically. `deploy/Caddyfile` redirects old `http://<IP>` links to the domain; when moving to a new VPS, update that IP. Back to IP-only (domain broken): `DOMAIN=:80` and delete the redirect block.
 
 ## 8. Site versions, preview and rollback
-Saved versions are annotated git tags (`git tag -l 'site-*' -n1`). `site-v3` = live landing before the redesign merge (2026-10-16); the server also keeps `/root/backups/web-site-v3.tar.gz`.
+Saved versions are annotated git tags (`git tag -l 'site-*' -n1`). `site-v3` = landing before the redesign merge (server copy: `/root/backups/web-site-v3.tar.gz`); `site-v4` = merged redesign, live since 2026-10-16. Landing styles: `web/assets/landing.css`; `/case/` still uses `web/assets/style.css`.
 
 **Preview (not yet accepted):** new designs go to `web/preview/` → `https://imgrsz.ru/preview/`; each review round is a sibling folder (`web/preview-2/` …), earlier rounds stay for comparison (`noindex`, own `style.css`, shares `/assets/img/`). The live `/` is untouched; it goes live on `git pull` like any web change.
 
 **Promote preview to `/`** (after acceptance):
 1. `git tag -a site-vN -m "<what is live now>" && git push origin site-vN` — save the current live version first.
-2. Move `web/preview/index.html` → `web/index.html` and `web/preview/style.css` → `web/assets/style.css`; fix paths (`/preview/` → `/`); check that `/case/` still looks right (it uses `assets/style.css`).
+2. Copy the preview `index.html` → `web/index.html`, its CSS → `web/assets/landing.css`, images → `web/assets/img/`; fix paths (`/preview-N/` → `/`), drop `noindex`, restore `og:` tags, `start=` payloads → `landing_*`; delete the preview folders.
 3. Release (section 2), check `https://imgrsz.ru/` and `/case/` on desktop and phone.
 
 **Rollback the site** (any web version, ~1 min, bot untouched):

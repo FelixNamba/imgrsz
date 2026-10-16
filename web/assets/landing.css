@@ -1,4 +1,4 @@
-/* Preview: redesign (initial/imgrsz-redesign.html) as baseline + logo, fonts, hero and prices of the live site. */
+/* Landing (v4): redesign baseline + logo, Unbounded, Telegram hero and two-card prices of v3. /case/ uses style.css. */
 :root {
   --bg: #F5F3EE; --paper: #FFFEFA; --ink: #20221D; --muted: #6D7068; --line: #DFDED5;
   --accent: #D7FF65; --accent-ink: #20251B; --dark: #20221D; --radius: 22px; --max: 1160px;
