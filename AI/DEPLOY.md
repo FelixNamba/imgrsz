@@ -70,3 +70,20 @@ Edit `credentials.env` locally → `scp` it to the server → `$DC up -d` (recre
 
 ## 7. Domain switch-on
 Live: `DOMAIN="imgrsz.ru, www.imgrsz.ru"` (quoted, so `. credentials.env` works in a shell) (A records `@`, `www` → server IP). Change: edit `credentials.env` → copy it to the server → `$DC up -d --force-recreate caddy`; HTTPS is issued automatically. `deploy/Caddyfile` redirects old `http://<IP>` links to the domain; when moving to a new VPS, update that IP. Back to IP-only (domain broken): `DOMAIN=:80` and delete the redirect block.
+
+## 8. Site versions, preview and rollback
+Saved versions are annotated git tags (`git tag -l 'site-*' -n1`). `site-v3` = live landing before the redesign merge (2026-10-16); the server also keeps `/root/backups/web-site-v3.tar.gz`.
+
+**Preview (not yet accepted):** new designs go to `web/preview/` → `https://imgrsz.ru/preview/` (`noindex`, own `style.css`, shares `/assets/img/`). The live `/` is untouched; it goes live on `git pull` like any web change.
+
+**Promote preview to `/`** (after acceptance):
+1. `git tag -a site-vN -m "<what is live now>" && git push origin site-vN` — save the current live version first.
+2. Move `web/preview/index.html` → `web/index.html` and `web/preview/style.css` → `web/assets/style.css`; fix paths (`/preview/` → `/`); check that `/case/` still looks right (it uses `assets/style.css`).
+3. Release (section 2), check `https://imgrsz.ru/` and `/case/` on desktop and phone.
+
+**Rollback the site** (any web version, ~1 min, bot untouched):
+```bash
+git checkout site-v3 -- web/ && git commit -m "Rollback site to site-v3" && git push
+$SSH 'cd /opt/imgrsz && git pull -q'
+```
+Server-only emergency (GitHub unavailable): `$SSH 'cd /opt/imgrsz && git checkout site-v3 -- web/'`, or untar `/root/backups/web-site-v3.tar.gz` into `/opt/imgrsz/`. Then commit the same rollback locally so the next pull does not undo it.
