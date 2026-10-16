@@ -74,7 +74,7 @@ Live: `DOMAIN="imgrsz.ru, www.imgrsz.ru"` (quoted, so `. credentials.env` works 
 ## 8. Site versions, preview and rollback
 Saved versions are annotated git tags (`git tag -l 'site-*' -n1`). `site-v3` = live landing before the redesign merge (2026-10-16); the server also keeps `/root/backups/web-site-v3.tar.gz`.
 
-**Preview (not yet accepted):** new designs go to `web/preview/` → `https://imgrsz.ru/preview/` (`noindex`, own `style.css`, shares `/assets/img/`). The live `/` is untouched; it goes live on `git pull` like any web change.
+**Preview (not yet accepted):** new designs go to `web/preview/` → `https://imgrsz.ru/preview/`; each review round is a sibling folder (`web/preview-2/` …), earlier rounds stay for comparison (`noindex`, own `style.css`, shares `/assets/img/`). The live `/` is untouched; it goes live on `git pull` like any web change.
 
 **Promote preview to `/`** (after acceptance):
 1. `git tag -a site-vN -m "<what is live now>" && git push origin site-vN` — save the current live version first.
