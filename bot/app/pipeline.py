@@ -115,6 +115,33 @@ def resize(img: Image.Image, mode: str, width: int | None = None, height: int | 
     return img.resize((max(1, round(w * scale)), max(1, round(h * scale))), Image.LANCZOS)
 
 
+def output_size(width: int, height: int, ops: list[dict], extend: str | None = None) -> tuple[int, int]:
+    """Final pixel size of a plan without touching pixels (shown in the brief before the user pays)."""
+    w, h = width, height
+    if extend:
+        r = _ratio(extend)
+        w, h = (max(w, round(h * r)), h) if r >= w / h else (w, max(h, round(w / r)))
+    for op in ops:
+        name = op["op"]
+        if name == "crop_ratio":
+            r = _ratio(op["ratio"])
+            w, h = (round(h * r), h) if w / h > r else (w, round(w / r))
+        elif name == "pad_ratio":
+            r = _ratio(op["ratio"])
+            w, h = (w, round(w / r)) if w / h > r else (round(h * r), h)
+        elif name == "resize":
+            if op["mode"] in ("exact", "fill", "pad"):
+                w, h = op["width"], op["height"]
+            else:
+                scale = min((op.get("width") or 10**9) / w, (op.get("height") or 10**9) / h)
+                w, h = max(1, round(w * scale)), max(1, round(h * scale))
+        elif name == "rotate" and op["degrees"] % 180:
+            w, h = h, w
+        elif name == "print_size":
+            w, h = round(op["width_mm"] / 25.4 * op["dpi"]), round(op["height_mm"] / 25.4 * op["dpi"])
+    return w, h
+
+
 def apply_ops(img: Image.Image, ops: list[dict]) -> tuple[Image.Image, dict]:
     """Returns image and save options (format, dpi, max_kb)."""
     save = {"format": None, "dpi": None, "max_kb": None}

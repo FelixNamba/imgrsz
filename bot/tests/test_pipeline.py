@@ -71,3 +71,12 @@ def test_png_alpha_to_jpeg_flattens():
 def test_unknown_source_format_defaults_to_jpeg():
     res = pipeline.run(make(), [], "heif")
     assert res.fmt == "jpeg"
+
+
+def test_output_size_matches_pipeline():
+    from app.pipeline import output_size
+    ops = [{"op": "resize", "mode": "fit", "width": 300, "height": 300}]
+    assert output_size(960, 1280, ops) == (225, 300)
+    assert output_size(960, 1280, [{"op": "resize", "mode": "fill", "width": 300, "height": 300}]) == (300, 300)
+    assert output_size(1360, 1236, [{"op": "resize", "mode": "exact", "width": 5120, "height": 1440}], "5120:1440") == (5120, 1440)
+    assert output_size(1000, 500, [{"op": "crop_ratio", "ratio": "1:1"}, {"op": "rotate", "degrees": 90}]) == (500, 500)

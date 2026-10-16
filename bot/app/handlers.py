@@ -152,7 +152,9 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         return
     await state.set_state(None)
     db.event(msg.from_user.id, "brief_shown", job_id=job_id, iteration=job["iterations"] + 1, ai=plan.is_ai, price=plan.price)
-    await wait.edit_text(texts.brief(plan.brief, plan.price), reply_markup=_kb(job_id))
+    info = json.loads(job["image_info"])
+    size = pipeline.output_size(info["width"], info["height"], plan.ops, plan.extend)
+    await wait.edit_text(texts.brief(plan.brief, plan.price, size), reply_markup=_kb(job_id))
 
 
 @router.callback_query(F.data.startswith("edit:"))

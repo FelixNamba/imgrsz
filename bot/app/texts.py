@@ -39,8 +39,8 @@ def balance(value: int) -> str:
     return f"💰 Баланс: <b>{value} р.</b>"
 
 
-def brief(text: str, price: int) -> str:
-    return f"📝 <b>Бриф</b>\n{text}\n\nСтоимость: <b>{price} р.</b>"
+def brief(text: str, price: int, size: tuple[int, int]) -> str:
+    return f"📝 <b>Бриф</b>\n{text}\n\nИтог: <b>{size[0]}×{size[1]} px</b>\nСтоимость: <b>{price} р.</b>"
 
 
 def no_money(price: int, bal: int) -> str:

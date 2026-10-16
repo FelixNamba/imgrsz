@@ -23,7 +23,7 @@ flowchart TD
   M -- yes --> P[AI edit? → Pillow ops] --> D[📎 File + charge + disclaimer]
   P -- error --> F[Failed, no charge]
 ```
-Edit loop limit: 5 iterations per image.
+Edit loop limit: 5 iterations per image. The brief always shows the final size («Итог: W×H px»), computed in code (`pipeline.output_size`), not by the LLM.
 
 ## Pricing
 Values live in `bot/app/config.py` (brief free, technical, AI, welcome bonus). The brief shows only the price, no category. Charged only after successful delivery. AI price covers the worst case of a wide extension (up to ~$0.15 of model calls).
@@ -38,6 +38,7 @@ Values live in `bot/app/config.py` (brief free, technical, AI, welcome bonus). T
 | «убери фон» | AI background removal (plain white) → jpeg |
 | «HEIC в JPG, убери метаданные» | format jpeg |
 | «до 200 КБ, ширина 800» | resize fit 800 → max_size_kb 200 |
+| «сделай 300×300» (фото 3:4) | resize fill 300×300 — exact size, center crop; brief offers AI extension instead |
 
 ## Positioning
 A resize service, not a photo editor. AI only extends edges, restores detail and removes the background (to plain white); it does not draw new scenes or change people.
