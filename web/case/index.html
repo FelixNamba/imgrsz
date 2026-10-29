@@ -60,11 +60,6 @@
     <details><summary>Как тестировать? <i>?</i></summary><div>
       <p>Трафик — Telegram Ads в визовых и дизайн-каналах, а также в каналах селлеров маркетплейсов: 3 креатива под 3 боли («поменять фото по требованиям под визу», «нужен ресайз под размер N», «есть картинка для WB, нужна под Ozon»). Каждый креатив — свой диплинк <code>?start=tgads_*</code>, источник пишется в профиль пользователя.</p>
     </div></details>
-    <details><summary>Сбор данных <i>?</i></summary><div>
-      <p>Каждый шаг — событие в SQLite: <code>start(source)</code> → <code>image_received</code> → <code>brief_shown</code> → <code>brief_edit</code> → <code>confirmed</code> → <code>delivered | failed | refused</code>.</p>
-      <p>По каждой задаче: число итераций брифа, токены LLM, фактическая стоимость генерации в $, время обработки, параметры результата. Публичная сводка обновляется каждые 5 минут в <a href="/stats.json">stats.json</a> — цифры вверху страницы живые.</p>
-      <p>Каждая ИИ-задача отдаёт админу <code>job&lt;id&gt;_system_prompt.md</code> — операцию, пропорцию, запрос, бриф и полный промпт: аудит генерации.</p>
-    </div></details>
     <details><summary>Критерии принятия <i>?</i></summary><div>
       <ul>
         <li>≥ 30 активированных пользователей (прислали изображение) за неделю;</li>
@@ -172,6 +167,11 @@
     <details><summary>Бот <i>?</i></summary><div><p>Python 3.12 + aiogram 3: диалог «фото → бриф → подтверждение → результат», состояние в FSM, отдача результата файлом без пережатия Telegram.</p></div></details>
     <details><summary>Бриф и план <i>?</i></summary><div><p>GigaChat-2-Pro превращает свободный текст в бриф и JSON-план. План валидируется по allow-list схеме; цена считается кодом.</p></div></details>
     <details><summary>Обработка <i>?</i></summary><div><p>Pillow: обрезка, размер, поля, DPI, формат, сжатие до лимита (бинарный поиск по качеству). Метаданные не записываются никогда. ИИ-шаг — Gemini Flash Lite Image через OpenRouter, стоимость возвращается в ответе и пишется в задачу.</p><p>ИИ-шаг работает на пропорции исходника; расширение кадра — отдельный outpainting (серый холст, исходник сохраняется), точный размер — Pillow.</p></div></details>
+    <details><summary>Сбор данных <i>?</i></summary><div>
+      <p>Каждый шаг — событие в SQLite: <code>start(source)</code> → <code>image_received</code> → <code>brief_shown</code> → <code>brief_edit</code> → <code>confirmed</code> → <code>delivered | failed | refused</code>.</p>
+      <p>По каждой задаче: число итераций брифа, токены LLM, фактическая стоимость генерации в $, время обработки, параметры результата. Публичная сводка обновляется каждые 5 минут в <a href="/stats.json">stats.json</a> — цифры вверху страницы живые.</p>
+      <p>Каждая ИИ-задача отдаёт админу <code>job&lt;id&gt;_system_prompt.md</code> — операцию, пропорцию, запрос, бриф и полный промпт: аудит генерации.</p>
+    </div></details>
     <details><summary>Данные <i>?</i></summary><div><p>SQLite (WAL): пользователи, леджер баланса, задачи, события. Каждые 5 минут — атомарная выгрузка stats.json.</p></div></details>
     <details><summary>Инфраструктура <i>?</i></summary><div><p>Docker Compose на VPS serverspace: контейнер бота + Caddy (HTTPS, лендинг, кейс, stats.json). Код и документация — <a href="https://github.com/FelixNamba/imgrsz">GitHub</a>.</p></div></details>
   </section>
