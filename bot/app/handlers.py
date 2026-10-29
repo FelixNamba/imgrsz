@@ -139,7 +139,8 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         db.event(msg.from_user.id, "brief_failed", job_id=job_id, error=str(e)[:200])
         await wait.edit_text(texts.LLM_ERROR)
         return
-    full_request = f"{job['request']}\n[правка] {request}" if (is_edit and job["request"]) else request
+    # Stored for the admin log only; the LLM receives `request`, not this string.
+    full_request = f"{job['request']}\n\nУточнение: {request}" if (is_edit and job["request"]) else request
     info = json.loads(job["image_info"])
     warn = ratio_crop_warning(plan, full_request, info["width"], info["height"])
     if warn:
@@ -244,5 +245,5 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
         router.admin_bot, db, job_id=job_id, user=cb.from_user, request=job["request"] or "", brief=plan.brief,
         price=plan.price, cost_usd=cost_usd, seconds=seconds, original=original,
         src_ext={"jpeg": "jpg", "mpo": "jpg", "heif": "heic"}.get(src_fmt, src_fmt or "bin"), result=res,
-        ai_op=plan.ai_op, ai_prompt=plan.ai_prompt, ai_ratio=ai_ratio, extend_ratio=plan.extend,
+        ai_op=plan.ai_op, ai_prompt=plan.ai_prompt, ai_ratio=ai_ratio, extend_ratio=plan.extend, ops=plan.ops,
     ))

@@ -40,7 +40,7 @@ Showcase image: `web/assets/architecture.svg`.
 
 ## Key decisions
 - **GigaChat cannot edit images** (only text2image), so image edits go to OpenRouter (`google/gemini-3.1-flash-lite-image`, about $0.034 per edit, measured). You can switch with `OPENROUTER_MODEL`.
-- **AI prompts are assembled, not written by the LLM:** `prompts.py` holds a fixed invariant (the source image is the ground truth) and a task template per `ai_op`; `plan.py` renders the final prompt. The LLM only chooses the op and parameters, so wording cannot drift per image. The AI output ratio is computed from the source (`nearest_ai_ratio`) — the model never changes framing; ratio changes go through `extend.py` or Pillow.
+- **AI prompts are assembled, not written by the LLM:** `prompts.py` holds a fixed invariant (the source image is the ground truth) and a task template per `ai_op`; `plan.py` renders the final prompt. The LLM only chooses the op and parameters, so wording cannot drift per image. The AI output ratio is computed from the source (`nearest_ai_ratio`) — the model never changes framing; ratio changes go through `extend.py` or Pillow. Background removal plus a wider canvas is padded with the target colour, not outpainted, so the new area stays flat.
 - **Metadata:** outputs are re-encoded by Pillow without passing exif, xmp, icc or pnginfo, so EXIF, GPS, XMP, IPTC and C2PA are all gone. The bot message carries an AI disclaimer instead. An invisible pixel watermark from the model (SynthID), if present, is not metadata and is not affected.
 - **TLS:** GigaChat uses the Russian Trusted Root CA, stored in `deploy/certs/` and loaded only for the GigaChat client.
 - **Polling, not webhook:** there is no inbound port for the bot, and the setup is simpler for a single instance.

@@ -77,6 +77,14 @@ def nearest_ai_ratio(width: int, height: int) -> str:
     return min(AI_RATIOS, key=lambda r: abs(_ratio_value(r) - target))
 
 
+def _pad_op(extend: str, color: str) -> dict:
+    """Pad to a W:H target. Small numbers are a ratio; large ones are pixels."""
+    a, b = map(int, extend.split(":"))
+    if a <= 99 and b <= 99:
+        return {"op": "pad_ratio", "ratio": f"{a}:{b}", "color": color}
+    return {"op": "resize", "mode": "pad", "width": a, "height": b, "color": color}
+
+
 def _validate_op(op: dict) -> dict:
     name = op.get("op")
     if name == "crop_ratio":
@@ -202,6 +210,13 @@ def parse_plan(data: dict) -> Plan:
         ai_prompt = prompts.with_invariant(str(legacy).strip()[:1500]) if legacy else None
         ai_object = ai_region = ai_target = None
     extend = _extend_ratio(data["extend"]) if data.get("extend") else None
+    if ai_op == "remove_background" and extend:
+        # A white background plus a wider canvas is padding, not outpainting. extend would
+        # continue whatever is at the source edge (objects, lot) into the new area.
+        pad = _pad_op(extend, ai_target or "#ffffff")
+        idx = next((i for i, o in enumerate(ops) if o["op"] == "resize"), len(ops))
+        ops.insert(idx, pad)
+        extend = None
     if not brief and not question:
         raise PlanError("empty brief")
     return Plan(brief=brief, ops=ops, ai_op=ai_op, ai_object=ai_object, ai_region=ai_region,

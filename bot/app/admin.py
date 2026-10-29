@@ -4,6 +4,7 @@ Bots cannot message a user first, so each admin from config.admin_usernames
 must send /start to the admin bot once; their chat_id is then stored in `admins`.
 """
 import html
+import json
 import logging
 
 from aiogram import Bot, Router
@@ -53,7 +54,7 @@ async def any_message(msg: Message):
 async def notify(admin_bot: Bot | None, db: DB, *, job_id: int, user, request: str, brief: str,
                  price: int, cost_usd: float, seconds: float, original: bytes, src_ext: str, result,
                  ai_op: str | None = None, ai_prompt: str | None = None, ai_ratio: str | None = None,
-                 extend_ratio: str | None = None) -> None:
+                 extend_ratio: str | None = None, ops: list | None = None) -> None:
     """Send original + result to every registered admin. Never raises."""
     if not admin_bot:
         return
@@ -68,8 +69,11 @@ async def notify(admin_bot: Bot | None, db: DB, *, job_id: int, user, request: s
     prompt_md = (
         f"# job{job_id} — system prompt\n\n"
         f"- **AI op:** {ai_op or '—'}\n"
-        f"- **AI ratio:** {ai_ratio or '—'}\n"
-        f"- **Extend:** {extend_ratio or '—'}\n\n"
+        f"- **AI stage ratio (source):** {ai_ratio or '—'}\n"
+        f"- **Final size:** {result.width}×{result.height}\n"
+        f"- **Extend:** {extend_ratio or '—'}\n"
+        f"- **Price:** {price} р. · **provider cost:** ${cost_usd:.4f}\n"
+        f"- **Ops:** {json.dumps(ops or [], ensure_ascii=False)}\n\n"
         f"## Request\n\n{request or '—'}\n\n"
         f"## Brief\n\n{brief or '—'}\n\n"
         f"## Prompt\n\n```text\n{ai_prompt or '—'}\n```\n"

@@ -72,6 +72,24 @@ def test_extend_does_not_ask():
     assert ratio_crop_warning(p, "сделай 16х9", 800, 600) is None
 
 
+def test_background_plus_extend_pads_not_outpaints():
+    p = parse_plan({
+        "brief": "x", "ai_op": "remove_background", "extend": "3840:1080",
+        "ops": [{"op": "resize", "mode": "exact", "width": 3840, "height": 1080}],
+    })
+    assert p.extend is None
+    assert p.ops[0] == {"op": "resize", "mode": "pad", "width": 3840, "height": 1080, "color": "#ffffff"}
+
+
+def test_background_plus_ratio_pads():
+    p = parse_plan({
+        "brief": "x", "ai_op": "remove_background", "extend": "16:9",
+        "ops": [{"op": "resize", "mode": "exact", "width": 1600, "height": 900}],
+    })
+    assert p.extend is None
+    assert p.ops[0] == {"op": "pad_ratio", "ratio": "16:9", "color": "#ffffff"}
+
+
 def test_refuse_not_actionable():
     p = parse_plan({"brief": "", "refuse": "нельзя", "ops": [{"op": "grayscale"}]})
     assert p.refuse and not p.actionable and p.ops == []
