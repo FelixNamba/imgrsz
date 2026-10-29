@@ -1,14 +1,13 @@
 # Telegram Ads — targeting
 
-**Audience:** IT and office people who use Telegram for work. They fill in forms, HR systems, government services and marketplaces, and assemble presentations and covers.
+**Audience:** visa applicants, designers and marketplace sellers who need an image to pass a strict upload form or fit a specific canvas.
 
-**Targeting by channel topics** (in the ad account): Technologies, IT, Design, Marketing/SMM, HR/Careers, Business, Freelance.
+**Targeting by channel topics** (in the ad account): Visa & migration, Travel, Design, E-commerce/Marketplaces, Business, Freelance.
 
 **Targeting by specific channels** (select in the ad account; criteria):
-- IT news and development (backend/frontend/mobile), product management, QA
-- UX/UI and graphic design, no-code
-- HR and recruiting, job channels (people uploading resumes and photos)
-- SMM/content: covers and banners in different aspect ratios
+- visa, migration and travel channels (photo and document requirements)
+- UX/UI and graphic design, no-code, design tools
+- Wildberries/Ozon seller channels, e-commerce and marketplace communities
 - channels with ≥1,000 subscribers, RU-speaking, KZ/RU geography
 
 **Settings:** RU language; daily cap evenly split across c1–c3; CPM bid at the lower bound of the recommendation; frequency cap 2.
