@@ -13,6 +13,7 @@ from aiogram.types import BufferedInputFile, InputMediaDocument, Message
 
 from .config import config
 from .db import DB
+from .llm import SYSTEM_PROMPT
 
 log = logging.getLogger(__name__)
 router = Router()
@@ -74,9 +75,10 @@ async def notify(admin_bot: Bot | None, db: DB, *, job_id: int, user, request: s
         f"- **Extend:** {extend_ratio or '—'}\n"
         f"- **Price:** {price} р. · **provider cost:** ${cost_usd:.4f}\n"
         f"- **Ops:** {json.dumps(ops or [], ensure_ascii=False)}\n\n"
-        f"## Request\n\n{request or '—'}\n\n"
-        f"## Brief\n\n{brief or '—'}\n\n"
-        f"## Prompt\n\n```text\n{ai_prompt or '—'}\n```\n"
+        f"## Image generation prompt (sent to the image model)\n\n```text\n{ai_prompt or '—'}\n```\n\n"
+        f"## Planning system prompt (GigaChat)\n\n```text\n{SYSTEM_PROMPT}\n```\n\n"
+        f"## Request (audit context, not sent to the image model)\n\n{request or '—'}\n\n"
+        f"## Brief (audit context)\n\n{brief or '—'}\n"
     ).encode()
     media = [
         InputMediaDocument(media=BufferedInputFile(original, filename=f"job{job_id}_before.{src_ext}")),
