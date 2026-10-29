@@ -51,7 +51,9 @@ async def any_message(msg: Message):
 
 
 async def notify(admin_bot: Bot | None, db: DB, *, job_id: int, user, request: str, brief: str,
-                 price: int, cost_usd: float, seconds: float, original: bytes, src_ext: str, result) -> None:
+                 price: int, cost_usd: float, seconds: float, original: bytes, src_ext: str, result,
+                 ai_op: str | None = None, ai_prompt: str | None = None, ai_ratio: str | None = None,
+                 extend_ratio: str | None = None) -> None:
     """Send original + result to every registered admin. Never raises."""
     if not admin_bot:
         return
@@ -63,10 +65,20 @@ async def notify(admin_bot: Bot | None, db: DB, *, job_id: int, user, request: s
         f"<b>Итог:</b> {result.width}×{result.height}, {result.ext.upper()}, {result.kb} КБ\n"
         f"Цена {price} р. · себестоимость ${cost_usd:.3f} · {seconds:.1f} с"
     )[:1024]
+    prompt_md = (
+        f"# job{job_id} — system prompt\n\n"
+        f"- **AI op:** {ai_op or '—'}\n"
+        f"- **AI ratio:** {ai_ratio or '—'}\n"
+        f"- **Extend:** {extend_ratio or '—'}\n\n"
+        f"## Request\n\n{request or '—'}\n\n"
+        f"## Brief\n\n{brief or '—'}\n\n"
+        f"## Prompt\n\n```text\n{ai_prompt or '—'}\n```\n"
+    ).encode()
     media = [
         InputMediaDocument(media=BufferedInputFile(original, filename=f"job{job_id}_before.{src_ext}")),
         InputMediaDocument(media=BufferedInputFile(result.data, filename=f"job{job_id}_after.{result.ext}"),
                            caption=caption, parse_mode="HTML"),
+        InputMediaDocument(media=BufferedInputFile(prompt_md, filename=f"job{job_id}_system_prompt.md")),
     ]
     for chat_id in db.admin_chats():
         try:

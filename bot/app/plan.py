@@ -6,6 +6,7 @@ ops with typed, clamped params (anti prompt injection by construction).
 import re
 from dataclasses import dataclass, field
 
+from . import prompts
 from .config import config
 
 RATIO_RE = re.compile(r"^\d{1,2}:\d{1,2}$")
@@ -52,6 +53,28 @@ def _color(v):
     if not HEX_RE.match(v):
         raise PlanError("color must be #rrggbb")
     return v
+
+
+def _phrase(v, maxlen: int) -> str | None:
+    """One-line free text from the LLM (object/region for the AI task)."""
+    if not v:
+        return None
+    s = re.sub(r"[\r\n]+", " ", str(v)).strip()
+    return s[:maxlen] or None
+
+
+def _ratio_value(r: str) -> float:
+    a, b = map(int, r.split(":"))
+    return a / b
+
+
+def nearest_ai_ratio(width: int, height: int) -> str:
+    """The AI step always runs at the source ratio, so the model never changes framing.
+
+    The final ratio is produced by extend.py or Pillow ops, not by the image model.
+    """
+    target = width / height if height else 1.0
+    return min(AI_RATIOS, key=lambda r: abs(_ratio_value(r) - target))
 
 
 def _validate_op(op: dict) -> dict:
@@ -105,8 +128,11 @@ def _validate_op(op: dict) -> dict:
 class Plan:
     brief: str
     ops: list[dict] = field(default_factory=list)
-    ai_prompt: str | None = None
-    ai_ratio: str | None = None
+    ai_op: str | None = None  # one of prompts.AI_OPS
+    ai_object: str | None = None
+    ai_region: str | None = None
+    ai_target: str | None = None
+    ai_prompt: str | None = None  # rendered in code: invariant + task
     extend: str | None = None  # final W:H; executed by extend.py, keeps the whole source
     question: str | None = None
     refuse: str | None = None
@@ -127,6 +153,28 @@ class Plan:
         return {k: v for k, v in self.__dict__.items() if v not in (None, [])}
 
 
+CROP_WORDS = ("обрез", "обреж", "кадрир", "crop", "вырез", "отрез", "среза", "убрать края", "по краям")
+
+
+def ratio_crop_warning(plan: Plan, request: str, width: int, height: int) -> str | None:
+    """A ratio-changing crop loses pixels; ask unless the user explicitly asked to crop."""
+    if plan.extend or plan.question or plan.refuse:
+        return None
+    source = width / height if height else 1.0
+    target = None
+    for op in plan.ops:
+        if op["op"] == "crop_ratio":
+            target = _ratio_value(op["ratio"])
+        elif op["op"] == "resize" and op.get("mode") == "fill" and op.get("width") and op.get("height"):
+            target = op["width"] / op["height"]
+    if target is None or abs(target - source) / source < 0.02:
+        return None
+    if any(w in request.lower() for w in CROP_WORDS):
+        return None
+    return ("Пропорция меняется обрезкой — часть кадра потеряется. Обрезать края или дорисовать их с ИИ? "
+            "Напишите «обрежь» или «дорисуй».")
+
+
 def parse_plan(data: dict) -> Plan:
     if not isinstance(data, dict):
         raise PlanError("plan must be an object")
@@ -136,12 +184,25 @@ def parse_plan(data: dict) -> Plan:
     if refuse:
         return Plan(brief=brief or refuse, refuse=refuse)
     ops = [_validate_op(o) for o in (data.get("ops") or []) if isinstance(o, dict)][:12]
-    ai_prompt = data.get("ai_prompt")
-    ai_prompt = str(ai_prompt).strip()[:1500] if ai_prompt else None
-    ai_ratio = data.get("ai_ratio") or None
-    if ai_ratio is not None and ai_ratio not in AI_RATIOS:
-        ai_ratio = None
+    ai_op = data.get("ai_op")
+    ai_object = _phrase(data.get("ai_object"), 120)
+    ai_region = _phrase(data.get("ai_region"), 120)
+    ai_target = _color(data.get("ai_target")) if data.get("ai_target") else None
+    if ai_op is not None:
+        ai_op = str(ai_op).strip()
+        if ai_op not in prompts.AI_OPS:
+            raise PlanError(f"unknown ai_op: {ai_op!r}")
+        if ai_op == "remove_object" and not ai_object:
+            raise PlanError("remove_object needs ai_object")
+        ai_target = ai_target if ai_op == "remove_background" else None
+        ai_prompt = prompts.render(ai_op, object=ai_object, region=ai_region, target=ai_target)
+    else:
+        # Legacy drafts stored a free-form ai_prompt; keep them working, wrapped in the invariant.
+        legacy = data.get("ai_prompt")
+        ai_prompt = prompts.with_invariant(str(legacy).strip()[:1500]) if legacy else None
+        ai_object = ai_region = ai_target = None
     extend = _extend_ratio(data["extend"]) if data.get("extend") else None
     if not brief and not question:
         raise PlanError("empty brief")
-    return Plan(brief=brief, ops=ops, ai_prompt=ai_prompt, ai_ratio=ai_ratio, extend=extend, question=question)
+    return Plan(brief=brief, ops=ops, ai_op=ai_op, ai_object=ai_object, ai_region=ai_region,
+                ai_target=ai_target, ai_prompt=ai_prompt, extend=extend, question=question)

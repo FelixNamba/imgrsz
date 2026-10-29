@@ -1,7 +1,7 @@
 import pytest
 
 from app.config import config
-from app.plan import PlanError, parse_plan
+from app.plan import PlanError, nearest_ai_ratio, parse_plan, ratio_crop_warning
 
 
 def test_technical_price():
@@ -10,8 +10,9 @@ def test_technical_price():
 
 
 def test_ai_price():
-    p = parse_plan({"brief": "x", "ai_prompt": "extend", "ai_ratio": "16:9"})
-    assert p.price == config.price_ai and p.ai_ratio == "16:9"
+    p = parse_plan({"brief": "x", "ai_op": "enhance"})
+    assert p.price == config.price_ai and p.ai_op == "enhance"
+    assert "ground truth" in p.ai_prompt
 
 
 def test_extend_any_ratio():
@@ -31,8 +32,44 @@ def test_params_clamped():
         parse_plan({"brief": "x", "ops": [{"op": "resize", "mode": "exact", "width": 99999, "height": 10}]})
 
 
-def test_bad_ai_ratio_dropped():
-    assert parse_plan({"brief": "x", "ai_prompt": "y", "ai_ratio": "7:3"}).ai_ratio is None
+def test_unknown_ai_op_rejected():
+    with pytest.raises(PlanError):
+        parse_plan({"brief": "x", "ai_op": "redraw_everything"})
+
+
+def test_remove_object_needs_object():
+    with pytest.raises(PlanError):
+        parse_plan({"brief": "x", "ai_op": "remove_object"})
+    p = parse_plan({"brief": "x", "ai_op": "remove_object", "ai_object": "a red truck"})
+    assert "a red truck" in p.ai_prompt
+
+
+def test_legacy_ai_prompt_still_works():
+    p = parse_plan({"brief": "x", "ai_prompt": "Remove the background.", "ai_ratio": "16:9"})
+    assert p.is_ai and "Remove the background." in p.ai_prompt
+
+
+def test_nearest_ai_ratio_is_the_source_ratio():
+    assert nearest_ai_ratio(800, 600) == "4:3"
+    assert nearest_ai_ratio(1920, 1080) == "16:9"
+    assert nearest_ai_ratio(1080, 1920) == "9:16"
+
+
+def test_ratio_crop_without_intent_asks():
+    p = parse_plan({"brief": "x", "ops": [{"op": "crop_ratio", "ratio": "16:9"}]})
+    assert ratio_crop_warning(p, "сделай 16х9", 800, 600)
+    fill = parse_plan({"brief": "x", "ops": [{"op": "resize", "mode": "fill", "width": 1600, "height": 900}]})
+    assert ratio_crop_warning(fill, "сделай 1600x900", 800, 600)
+
+
+def test_explicit_crop_does_not_ask():
+    p = parse_plan({"brief": "x", "ops": [{"op": "crop_ratio", "ratio": "16:9"}]})
+    assert ratio_crop_warning(p, "обрежь до 16:9", 800, 600) is None
+
+
+def test_extend_does_not_ask():
+    p = parse_plan({"brief": "x", "extend": "16:9"})
+    assert ratio_crop_warning(p, "сделай 16х9", 800, 600) is None
 
 
 def test_refuse_not_actionable():

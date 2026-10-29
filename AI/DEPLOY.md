@@ -5,7 +5,7 @@ Facts:
 - SSH key: `env/imgrsz.pem` (local, gitignored).
 - App dir: `/opt/imgrsz` (git clone of `github.com/FelixNamba/imgrsz`).
 - Secrets: `/opt/imgrsz/credentials.env`, chmod 600, never in git.
-- Data: `/opt/imgrsz/data/imgrsz.sqlite`. Backups: `/root/backups/`.
+- Data: `/opt/imgrsz/data/imgrsz.sqlite`. Backups: `/root/backups/` (daily, same host); off-server copies: `deploy/pull_backup.sh <ip>` → local `backups/` (gitignored).
 - Compose: `docker compose -f deploy/docker-compose.yml` (services `bot` and `caddy`), run from `/opt/imgrsz`.
 
 Rules for agents: before any destructive step (rm, `down -v`, DB restore), back up the DB first. Never print secrets. Long commands run under `nohup … &` because the provider drops idle SSH sessions.
@@ -17,15 +17,11 @@ DC="docker compose -f deploy/docker-compose.yml"
 ```
 
 ## 1. First deploy (new server)
+Fresh Ubuntu LTS VPS (≥1 GB RAM) with root SSH by key. From the repo root on the laptop:
 ```bash
-$SSH 'fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile && echo "/swapfile none swap sw 0 0" >> /etc/fstab'
-$SSH 'curl -fsSL https://get.docker.com | sh && apt-get install -y sqlite3 git ufw && ufw allow OpenSSH && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable'
-$SSH 'git clone https://github.com/FelixNamba/imgrsz.git /opt/imgrsz && mkdir -p /opt/imgrsz/data'
-scp -i env/imgrsz.pem credentials.env root@185.200.86.246:/opt/imgrsz/credentials.env
-$SSH 'cd /opt/imgrsz && chmod 600 credentials.env && nohup docker compose -f deploy/docker-compose.yml up -d --build > /root/deploy.log 2>&1 &'
-$SSH 'echo "0 3 * * * root /opt/imgrsz/deploy/backup.sh" > /etc/cron.d/imgrsz-backup'
+deploy/bootstrap.sh <ip> [backups/imgrsz-<date>.sqlite]     # SSH_KEY=<path> if not env/imgrsz.pem
 ```
-Check: `bash scripts/check_access.sh` on the server (all APIs reachable), then section 5.
+It sets up swap, Docker and the firewall, clones the repo, uploads `credentials.env` (and the DB if given), adds the backup cron, builds and starts the stack, then runs `scripts/check_access.sh`. Safe to re-run. Then point DNS at the new IP (section 7) and run the health check (section 5).
 
 ## 2. Regular release
 ```bash
@@ -51,12 +47,11 @@ Work top to bottom and stop when it is fixed.
 7. **Restore DB** (only if corrupted): `$DC stop bot && cp /root/backups/imgrsz-<date>.sqlite data/imgrsz.sqlite && $DC start bot`.
 
 ## 4. Migration to a new server
-1. Create the new VPS and add the SSH key. Run section 1 on the new host up to the point of copying the secrets (do not start the stack).
-2. On the old host: `$DC stop bot && sqlite3 data/imgrsz.sqlite ".backup /root/final.sqlite"`.
-3. Copy: `scp` old:/root/final.sqlite → local → new:/opt/imgrsz/data/imgrsz.sqlite, plus `credentials.env`.
-4. Start on the new host: `$DC up -d --build`. Check section 5.
-5. Point the domain's DNS A record at the new IP (TTL 300). Caddy issues the certificate automatically once DNS resolves.
-6. Old host: `$DC down`. Keep it for 48 h, then delete it. Update the IP in this file.
+1. Create the new VPS and add the SSH key.
+2. Old host: `$SSH "cd /opt/imgrsz && $DC stop bot"`, then `deploy/pull_backup.sh <old_ip>` (final snapshot, nothing changes after the stop).
+3. `deploy/bootstrap.sh <new_ip> backups/imgrsz-<date>.sqlite`. Check section 5.
+4. Point the domain's DNS A record at the new IP (TTL 300). Caddy issues the certificate automatically once DNS resolves.
+5. Old host: `$DC down`. Keep it for 48 h, then delete it. Update the IP in this file and in `deploy/Caddyfile` (section 7).
 
 ## 5. Health check
 ```bash
@@ -87,3 +82,19 @@ git checkout site-v3 -- web/ && git commit -m "Rollback site to site-v3" && git 
 $SSH 'cd /opt/imgrsz && git pull -q'
 ```
 Server-only emergency (GitHub unavailable): `$SSH 'cd /opt/imgrsz && git checkout site-v3 -- web/'`, or untar `/root/backups/web-site-v3.tar.gz` into `/opt/imgrsz/`. Then commit the same rollback locally so the next pull does not undo it.
+
+## 9. Hibernate and wake up
+Pausing the project for a long time: nothing is lost if git, `credentials.env`, `env/` (SSH keys) and the final DB snapshot survive.
+
+**Hibernate**
+1. `git status` is clean and pushed (`git log origin/main..main` is empty).
+2. `$SSH "cd /opt/imgrsz && $DC stop bot"`, then `deploy/pull_backup.sh <ip>`: the final DB in `backups/`.
+3. Copy `credentials.env`, `env/` and `backups/` to durable storage beyond this laptop (password manager or encrypted cloud drive).
+4. `$SSH "cd /opt/imgrsz && $DC down"`, then delete the VPS in the serverspace panel (or keep paying to keep it). Mark the Prod host line above as hibernated.
+5. Keep the domain `imgrsz.ru` renewed, or it is lost. Telegram bot tokens do not expire; the bot just stays silent.
+
+**Wake up**
+1. Restore `credentials.env`, `env/`, `backups/` into the repo root.
+2. Check the outside world, since keys and models age: GigaChat auth key, OpenRouter balance, `deploy/certs/` (section 3, step 4), and that `OPENROUTER_MODEL` / `GIGACHAT_MODEL` still exist.
+3. Refresh dependencies locally: bump `bot/requirements.txt`, `python:3.12-slim` in `deploy/Dockerfile`, `caddy:` in `deploy/docker-compose.yml`; run `pytest bot/tests` and a local bot with a test token (TECH → Local dev).
+4. New VPS → `deploy/bootstrap.sh <new_ip> backups/<final>.sqlite` (section 1), DNS (section 7), health check (section 5). Update the IP in this file and in `deploy/Caddyfile`.

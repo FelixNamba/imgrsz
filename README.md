@@ -14,7 +14,7 @@ Send an image and describe the need in your own words â†’ confirm the AI brief â
 | [PRD](AI/PRD.md) | problem, hypothesis, scope, acceptance criteria |
 | [PRODUCT](AI/PRODUCT.md) | user flow, pricing, bot profile |
 | [TECH](AI/TECH.md) | architecture, modules, decisions |
-| [DEPLOY](AI/DEPLOY.md) | runbook: deploy, prod down, migration |
+| [DEPLOY](AI/DEPLOY.md) | runbook: deploy, prod down, migration, hibernate |
 | [ANALYTICS](AI/ANALYTICS.md) | events, stats.json, SQL |
 | [ARTIFACTS](AI/ARTIFACTS.md) | list of project artefacts |
 

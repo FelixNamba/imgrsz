@@ -29,16 +29,18 @@ Showcase image: `web/assets/architecture.svg`.
 | `config.py` | env and **prices/bonus (single source of truth)** |
 | `handlers.py` | aiogram router, FSM states `waiting_task`, `waiting_edit` |
 | `llm.py` | GigaChat OAuth (token cached about 30 min), chat, system prompt |
-| `plan.py` | Plan schema, validation, price |
+| `plan.py` | Plan schema, validation, price, `nearest_ai_ratio` (AI output ratio = source ratio) |
+| `prompts.py` | fixed image-edit invariant + task templates rendered from `ai_op` |
 | `pipeline.py` | Pillow ops, encode without metadata, binary search on quality for `max_size_kb` |
 | `providers.py` | `ImageEditProvider` → `OpenRouterProvider` and `FakeProvider` |
 | `db.py` | SQLite schema, ledger, jobs, events |
 | `analytics.py` | `stats.json` export (atomic write) |
 | `texts.py` | all RU user-facing texts |
-| `admin.py` | admin bot (@imgrsz_admin_bot): copy of every result (original + output + request, brief, cost) to admins |
+| `admin.py` | admin bot (@imgrsz_admin_bot): one album per job — original, output, and `job<id>_system_prompt.md` (AI op, ratio, request, brief, full rendered prompt, cost) |
 
 ## Key decisions
 - **GigaChat cannot edit images** (only text2image), so image edits go to OpenRouter (`google/gemini-3.1-flash-lite-image`, about $0.034 per edit, measured). You can switch with `OPENROUTER_MODEL`.
+- **AI prompts are assembled, not written by the LLM:** `prompts.py` holds a fixed invariant (the source image is the ground truth) and a task template per `ai_op`; `plan.py` renders the final prompt. The LLM only chooses the op and parameters, so wording cannot drift per image. The AI output ratio is computed from the source (`nearest_ai_ratio`) — the model never changes framing; ratio changes go through `extend.py` or Pillow.
 - **Metadata:** outputs are re-encoded by Pillow without passing exif, xmp, icc or pnginfo, so EXIF, GPS, XMP, IPTC and C2PA are all gone. The bot message carries an AI disclaimer instead. An invisible pixel watermark from the model (SynthID), if present, is not metadata and is not affected.
 - **TLS:** GigaChat uses the Russian Trusted Root CA, stored in `deploy/certs/` and loaded only for the GigaChat client.
 - **Polling, not webhook:** there is no inbound port for the bot, and the setup is simpler for a single instance.

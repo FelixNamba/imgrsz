@@ -10,3 +10,5 @@ data/
 web/stats.json
 initial/
 env/
+backups/
+tmp/

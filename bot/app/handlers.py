@@ -2,6 +2,7 @@ import asyncio
 import json
 import logging
 import time
+from dataclasses import replace
 
 from aiogram import Bot, F, Router
 from aiogram.filters import Command, CommandObject, CommandStart
@@ -13,7 +14,7 @@ from . import admin, extend, pipeline, texts
 from .config import config
 from .db import DB
 from .llm import GigaChat
-from .plan import Plan, PlanError, parse_plan
+from .plan import Plan, PlanError, nearest_ai_ratio, parse_plan, ratio_crop_warning
 from .providers import ImageEditProvider
 
 log = logging.getLogger(__name__)
@@ -126,6 +127,10 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         await msg.answer(texts.TOO_MANY_EDITS)
         return
     prev = json.loads(job["plan"]) if (is_edit and job["plan"]) else None
+    if prev:
+        prev.pop("ai_prompt", None)  # rendered in code; the LLM only picks ai_op
+        prev.pop("ai_ratio", None)  # legacy field
+        prev.pop("question", None)  # the bot's own clarification, not part of the plan
     wait = await msg.answer(texts.THINKING)
     try:
         plan, tokens = await router.llm.make_plan(json.loads(job["image_info"]), request, prev)
@@ -135,6 +140,10 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         await wait.edit_text(texts.LLM_ERROR)
         return
     full_request = f"{job['request']}\n[правка] {request}" if (is_edit and job["request"]) else request
+    info = json.loads(job["image_info"])
+    warn = ratio_crop_warning(plan, full_request, info["width"], info["height"])
+    if warn:
+        plan = replace(plan, question=warn)
     db.update_job(job_id, request=full_request, plan=json.dumps(plan.to_dict(), ensure_ascii=False), iterations=job["iterations"] + 1)
     db.add_job_cost(job_id, llm_tokens=tokens)
     await state.update_data(job_id=job_id)
@@ -152,7 +161,6 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         return
     await state.set_state(None)
     db.event(msg.from_user.id, "brief_shown", job_id=job_id, iteration=job["iterations"] + 1, ai=plan.is_ai, price=plan.price)
-    info = json.loads(job["image_info"])
     size = pipeline.output_size(info["width"], info["height"], plan.ops, plan.extend)
     await wait.edit_text(texts.brief(plan.brief, plan.price, size), reply_markup=_kb(job_id))
 
@@ -198,10 +206,14 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
     wait = await cb.message.answer(texts.WORKING)
     t0 = time.time()
     try:
+        image_info = json.loads(job["image_info"])
         data = original = (await bot.download(job["file_id"])).read()
         cost_usd = 0.0
+        ai_ratio = None
         if plan.ai_prompt:
-            ai = await router.provider.edit(data, plan.ai_prompt, plan.ai_ratio)
+            # The AI step never changes framing: its output ratio is the source ratio.
+            ai_ratio = nearest_ai_ratio(image_info["width"], image_info["height"])
+            ai = await router.provider.edit(data, plan.ai_prompt, ai_ratio)
             db.add_job_cost(job_id, provider_cost_usd=ai.cost_usd)
             cost_usd, data = ai.cost_usd, ai.data
         if plan.extend:
@@ -210,7 +222,7 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
             cost_usd += ext_cost
             data = pipeline.encode(img, "png").data
             db.event(uid, "extended", job_id=job_id, ratio=plan.extend, calls=calls, cost_usd=round(ext_cost, 4))
-        src_fmt = json.loads(job["image_info"]).get("format")
+        src_fmt = image_info.get("format")
         res = await asyncio.to_thread(pipeline.run, data, plan.ops, "jpeg" if src_fmt == "mpo" else src_fmt)
     except Exception as e:
         log.exception("job %s failed", job_id)
@@ -232,4 +244,5 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
         router.admin_bot, db, job_id=job_id, user=cb.from_user, request=job["request"] or "", brief=plan.brief,
         price=plan.price, cost_usd=cost_usd, seconds=seconds, original=original,
         src_ext={"jpeg": "jpg", "mpo": "jpg", "heif": "heic"}.get(src_fmt, src_fmt or "bin"), result=res,
+        ai_op=plan.ai_op, ai_prompt=plan.ai_prompt, ai_ratio=ai_ratio, extend_ratio=plan.extend,
     ))

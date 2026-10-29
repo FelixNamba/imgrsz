@@ -15,7 +15,7 @@ import httpx
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bot"))
-from app import extend, pipeline  # noqa: E402
+from app import extend, pipeline, prompts  # noqa: E402
 from app.config import config  # noqa: E402
 from app.providers import OpenRouterProvider  # noqa: E402
 
@@ -51,7 +51,7 @@ async def generate(prompt: str, ratio: str = "1:1") -> bytes:
 
 async def ai_edit(data: bytes, prompt: str, ratio: str | None) -> bytes:
     global cost
-    res = await OpenRouterProvider().edit(data, prompt, ratio)
+    res = await OpenRouterProvider().edit(data, prompts.with_invariant(prompt), ratio)
     cost += res.cost_usd
     return res.data
 
