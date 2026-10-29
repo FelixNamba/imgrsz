@@ -58,7 +58,7 @@ Work top to bottom and stop when it is fixed.
 $SSH "cd /opt/imgrsz && $DC ps && $DC logs --tail 5 bot"
 curl -s http://<host>/stats.json          # updated_at no older than 5 min
 ```
-Then in Telegram: `/start` → send a photo with "квадрат 500x500" → a 5 р. result arrives.
+Then in Telegram: `/start` → send a photo with "квадрат 500x500" → a 15 р. result arrives.
 
 ## 6. Key rotation
 Edit `credentials.env` locally → `scp` it to the server → `$DC up -d` (recreates the containers with the new env). Never commit it.

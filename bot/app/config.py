@@ -28,7 +28,7 @@ class Config:
 
     # Pricing (single source of truth, in "р.")
     welcome_bonus: int = 500
-    price_technical: int = 5
+    price_technical: int = 15
     price_ai: int = 39
     max_brief_iterations: int = 5
     # Real-money estimates for cost analytics

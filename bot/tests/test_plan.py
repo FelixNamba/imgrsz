@@ -6,7 +6,7 @@ from app.plan import PlanError, nearest_ai_ratio, parse_plan, ratio_crop_warning
 
 def test_technical_price():
     p = parse_plan({"brief": "x", "ops": [{"op": "resize", "mode": "fit", "width": 100}]})
-    assert p.price == 5 and not p.is_ai and p.actionable
+    assert p.price == config.price_technical and not p.is_ai and p.actionable
 
 
 def test_ai_price():
