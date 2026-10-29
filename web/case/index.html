@@ -59,7 +59,6 @@
     </div></details>
     <details><summary>Как тестировать? <i>?</i></summary><div>
       <p>Трафик — Telegram Ads в визовых и дизайн-каналах, а также в каналах селлеров маркетплейсов: 3 креатива под 3 боли («поменять фото по требованиям под визу», «нужен ресайз под размер N», «есть картинка для WB, нужна под Ozon»). Каждый креатив — свой диплинк <code>?start=tgads_*</code>, источник пишется в профиль пользователя.</p>
-      <p>Бонус 500 р. убирает барьер оплаты: проверяем ценность, а не готовность платить. Готовность платить — следующий эксперимент (пополнение баланса).</p>
     </div></details>
     <details><summary>Сбор данных <i>?</i></summary><div>
       <p>Каждый шаг — событие в SQLite: <code>start(source)</code> → <code>image_received</code> → <code>brief_shown</code> → <code>brief_edit</code> → <code>confirmed</code> → <code>delivered | failed | refused</code>.</p>
