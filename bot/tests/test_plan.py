@@ -1,7 +1,7 @@
 import pytest
 
 from app.config import config
-from app.plan import PlanError, nearest_ai_ratio, parse_plan, ratio_crop_warning
+from app.plan import PlanError, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
 
 
 def test_technical_price():
@@ -88,6 +88,24 @@ def test_background_plus_ratio_pads():
     })
     assert p.extend is None
     assert p.ops[0] == {"op": "pad_ratio", "ratio": "16:9", "color": "#ffffff"}
+
+
+def test_vertical_request_horizontal_plan_asks():
+    p = parse_plan({"brief": "x", "ai_op": "enhance",
+                    "ops": [{"op": "resize", "mode": "exact", "width": 2560, "height": 1440}]})
+    assert orientation_warning(p, "вертикальный монитор 9х16", (2560, 1440))
+
+
+def test_vertical_plan_ok():
+    p = parse_plan({"brief": "x", "ai_op": "enhance",
+                    "ops": [{"op": "resize", "mode": "exact", "width": 2160, "height": 3840}]})
+    assert orientation_warning(p, "вертикальный монитор 9х16", (2160, 3840)) is None
+
+
+def test_horizontal_request_vertical_plan_asks():
+    p = parse_plan({"brief": "x", "ai_op": "enhance",
+                    "ops": [{"op": "resize", "mode": "exact", "width": 1440, "height": 2560}]})
+    assert orientation_warning(p, "нужен баннер 16:9", (1440, 2560))
 
 
 def test_refuse_not_actionable():

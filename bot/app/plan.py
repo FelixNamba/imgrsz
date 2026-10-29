@@ -162,6 +162,8 @@ class Plan:
 
 
 CROP_WORDS = ("обрез", "обреж", "кадрир", "crop", "вырез", "отрез", "среза", "убрать края", "по краям")
+VERTICAL_WORDS = ("вертикал", "портрет", "9:16", "9х16", "9x16", "story", "стори", "shorts", "reels")
+HORIZONTAL_WORDS = ("горизонт", "ландшафт", "16:9", "16х9", "16x9", "широкоформат", "баннер")
 
 
 def ratio_crop_warning(plan: Plan, request: str, width: int, height: int) -> str | None:
@@ -181,6 +183,25 @@ def ratio_crop_warning(plan: Plan, request: str, width: int, height: int) -> str
         return None
     return ("Пропорция меняется обрезкой — часть кадра потеряется. Обрезать края или дорисовать их с ИИ? "
             "Напишите «обрежь» или «дорисуй».")
+
+
+def orientation_warning(plan: Plan, request: str, size: tuple[int, int]) -> str | None:
+    """The plan's final W×H must match the orientation the user asked for."""
+    if plan.question or plan.refuse:
+        return None
+    text = request.lower()
+    vertical = any(w in text for w in VERTICAL_WORDS)
+    horizontal = any(w in text for w in HORIZONTAL_WORDS)
+    if vertical == horizontal:
+        return None
+    w, h = size
+    if vertical and w > h:
+        return (f"Вы просили вертикальное изображение, а план даёт горизонтальное {w}×{h}. "
+                "Исправить на вертикальное? Напишите «да, вертикально» или укажите размеры.")
+    if horizontal and h > w:
+        return (f"Вы просили горизонтальное изображение, а план даёт вертикальное {w}×{h}. "
+                "Исправить на горизонтальное? Напишите «да, горизонтально» или укажите размеры.")
+    return None
 
 
 def parse_plan(data: dict) -> Plan:

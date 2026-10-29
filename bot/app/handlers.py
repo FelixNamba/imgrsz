@@ -14,7 +14,7 @@ from . import admin, extend, pipeline, texts
 from .config import config
 from .db import DB
 from .llm import GigaChat
-from .plan import Plan, PlanError, nearest_ai_ratio, parse_plan, ratio_crop_warning
+from .plan import Plan, PlanError, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
 from .providers import ImageEditProvider
 
 log = logging.getLogger(__name__)
@@ -142,7 +142,8 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
     # Stored for the admin log only; the LLM receives `request`, not this string.
     full_request = f"{job['request']}\n\nУточнение: {request}" if (is_edit and job["request"]) else request
     info = json.loads(job["image_info"])
-    warn = ratio_crop_warning(plan, full_request, info["width"], info["height"])
+    size = pipeline.output_size(info["width"], info["height"], plan.ops, plan.extend)
+    warn = orientation_warning(plan, full_request, size) or ratio_crop_warning(plan, full_request, info["width"], info["height"])
     if warn:
         plan = replace(plan, question=warn)
     db.update_job(job_id, request=full_request, plan=json.dumps(plan.to_dict(), ensure_ascii=False), iterations=job["iterations"] + 1)
@@ -162,7 +163,6 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         return
     await state.set_state(None)
     db.event(msg.from_user.id, "brief_shown", job_id=job_id, iteration=job["iterations"] + 1, ai=plan.is_ai, price=plan.price)
-    size = pipeline.output_size(info["width"], info["height"], plan.ops, plan.extend)
     await wait.edit_text(texts.brief(plan.brief, plan.price, size), reply_markup=_kb(job_id))
 
 
