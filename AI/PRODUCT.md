@@ -39,6 +39,10 @@ Values live in `bot/app/config.py` (brief free, technical, AI, welcome bonus). T
 | «HEIC в JPG, убери метаданные» | format jpeg |
 | «до 200 КБ, ширина 800» | resize fit 800 → max_size_kb 200 |
 | «сделай 300×300» (фото 3:4) | resize fill 300×300 — exact size, center crop; brief offers AI extension instead |
+| «увеличь до 1080×1920 и дорисуй» (фото 4:3) | extend 9:16 → resize exact; never stretched (TECH → plan guards) |
+| «убери фон, сделай 16:9» | AI background removal → pad 16:9 with the background colour |
+| «поверни на 90 градусов» | rotate 90 (no orientation question) |
+| «сделай в хорошем качестве» | enhance — only when quality is asked for, and as the last AI step |
 
 ## Positioning
 A resize service, not a photo editor. AI only extends edges, restores detail and removes the background (to plain white); it does not draw new scenes or change people.
