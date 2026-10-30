@@ -48,5 +48,7 @@ EXTEND = (
     "the scene (background, surfaces, objects cut by the edge, lighting, perspective), so it becomes one natural photo.\n"
     "Complete objects cut by the photo edge, but never add a second copy of the main subject or any new person, "
     "vehicle or animal.\n"
+    "Match the photo at its edge: the same focus blur and depth of field (a blurred background stays "
+    "equally blurred), the same colour, light, grain, scale and camera distance. Do not zoom, crop or move the photo.\n"
     "Do not change anything that is not gray. No text, no borders, no gray left."
 )

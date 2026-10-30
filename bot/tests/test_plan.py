@@ -2,7 +2,7 @@ import pytest
 
 from app.config import config
 from app.pipeline import output_size
-from app.plan import PlanError, fix_stretch, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
+from app.plan import PlanError, ai_ratio_fits, drop_unasked_enhance, fix_stretch, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
 
 
 def test_technical_price():
@@ -156,3 +156,20 @@ def test_matching_ratio_untouched():
 def test_rotation_does_not_ask_orientation():
     p = parse_plan({"brief": "x", "ops": [{"op": "rotate", "degrees": 90}]})
     assert orientation_warning(p, "переверни её по горизонтали на 90 градусов", (600, 800)) is None
+
+
+def test_unasked_enhance_dropped_but_extend_kept():
+    # jobs 21, 22: "расширь до 16х9" got an extra enhance pass
+    p = fix_stretch(parse_plan({"brief": "x", "ai_op": "enhance", "ops": [_exact(1920, 1080)]}), "расширь до 16х9", 1280, 960)
+    p = drop_unasked_enhance(p, "расширь до 16х9")
+    assert p.ai_prompt is None and p.extend == "16:9" and p.is_ai
+
+
+def test_asked_enhance_kept():
+    p = parse_plan({"brief": "x", "ai_op": "enhance"})
+    assert drop_unasked_enhance(p, "сделай в хорошем качестве").ai_op == "enhance"
+
+
+def test_ai_ratio_fits():
+    assert ai_ratio_fits(1920, 1080) and ai_ratio_fits(1280, 960)
+    assert not ai_ratio_fits(3840, 1080)

@@ -7,19 +7,29 @@ only fills the gray parts. Ratios wider than the model allows are filled window 
 window (each window is a supported ratio and overlaps already-filled pixels).
 Only previously-gray pixels are taken from the model, so the source stays intact.
 The model sometimes leaves a gray band; such bands stay "unfilled" and get another window.
+Every model answer is checked against the source in a band along the seam: a model that
+reframed or re-imagined the window fails the check and the window is retried. Accepted
+answers are matched to the source in colour and sharpness before they are blended in.
 """
 import io
+import logging
 
-from PIL import Image, ImageChops, ImageFilter
+from PIL import Image, ImageChops, ImageFilter, ImageStat
 
 from .pipeline import load
 from .plan import AI_RATIOS
 from .prompts import EXTEND as PROMPT
 from .providers import ImageEditProvider
 
+log = logging.getLogger(__name__)
+
 GRAY = (128, 128, 128)
 MAX_CALLS = 6
-FEATHER = 32  # px
+RETRIES = 2  # extra calls per window when the answer does not match the source
+FEATHER = 0.08  # blend width as a share of the window along the extension axis
+SEAM_BAND = 0.05  # share of the window: source pixels next to the gray area used for checks
+SEAM_MAX_DIFF = 12  # mean |model - source| in the seam band (0..255, blurred) above this = reframed; good answers ~3
+SEAM_MAX_JUMP = 3.0  # jump across the seam vs the same measure next to it; good ~1, visible line ~10+
 OVERLAP = 0.4  # share of every window taken from already-filled pixels (context for the model)
 _RATIOS = {r: (lambda a, b: a / b)(*map(int, r.split(":"))) for r in AI_RATIOS}
 _MAX_W, _MAX_T = max(_RATIOS.values()), min(_RATIOS.values())  # 21:9 and 9:16
@@ -81,25 +91,157 @@ def _gray_lines(img: Image.Image, horizontal: bool) -> list[bool]:
     return [v < 13 for v in line.get_flattened_data()]  # < 5% non-gray pixels
 
 
+def _seam_band(known: Image.Image, width: int) -> Image.Image:
+    """Mask of known pixels within `width` px of the gray area."""
+    near_gray = known.point(lambda v: 255 - v).filter(ImageFilter.BoxBlur(width)).point(lambda v: 255 if v else 0)
+    return ImageChops.multiply(near_gray, known)
+
+
+def seam_diff(tile: Image.Image, out: Image.Image, band: Image.Image) -> float:
+    """How far the model moved away from the source along the seam. Blurred first, so new
+    detail or noise does not count, only shifted, rescaled or replaced content."""
+    a = tile.convert("L").filter(ImageFilter.GaussianBlur(4))
+    b = out.convert("L").filter(ImageFilter.GaussianBlur(4))
+    return ImageStat.Stat(ImageChops.difference(a, b), mask=band).mean[0]
+
+
+def _jump(img: Image.Image, b: int, k: int = 3) -> float:
+    """Mean per-row difference between the k columns left and right of column b."""
+    h = img.height
+    left = img.crop((max(0, b - k), 0, b, h)).resize((1, max(1, h // 4)), Image.BOX)
+    right = img.crop((b, 0, min(img.width, b + k), h)).resize((1, max(1, h // 4)), Image.BOX)
+    return ImageStat.Stat(ImageChops.difference(left, right).convert("L")).mean[0]
+
+
+def seam_jump(out: Image.Image, known: Image.Image, horizontal: bool, skip: list[bool]) -> float:
+    """Worst seam of the model answer: the jump across the photo edge relative to the jumps a few
+    columns away. The model sometimes copies the photo but does not continue its details there."""
+    if not horizontal:
+        return seam_jump(out.transpose(Image.TRANSPOSE), known.transpose(Image.TRANSPOSE), True, skip)
+    line, w, worst = _axis_filled(known, True), out.width, 0.0
+    for b in range(41, w - 41):
+        if line[b] == line[b - 1] or skip[b - 1 if line[b] else b]:
+            continue
+        ref = sorted(_jump(out, b + d) for d in (-40, -30, -20, 20, 30, 40))[3]
+        worst = max(worst, _jump(out, b) / max(ref, 2.5))
+    return worst
+
+
+def match_colour(out: Image.Image, tile: Image.Image, band: Image.Image) -> Image.Image:
+    """Per-channel gain/offset so the model's tone in the seam band equals the source."""
+    src, gen = ImageStat.Stat(tile, mask=band), ImageStat.Stat(out, mask=band)
+    luts = []
+    for m_s, s_s, m_g, s_g in zip(src.mean, src.stddev, gen.mean, gen.stddev):
+        k = max(0.5, min(2.0, s_s / s_g)) if s_g > 1 else 1.0
+        luts += [max(0, min(255, round((v - m_g) * k + m_s))) for v in range(256)]
+    return out.point(luts)
+
+
+def sharpness(img: Image.Image, mask: Image.Image) -> float:
+    edges = img.convert("L").filter(ImageFilter.FIND_EDGES)
+    return ImageStat.Stat(edges, mask=mask).mean[0]
+
+
+def match_blur(out: Image.Image, target: float, area: Image.Image) -> Image.Image:
+    """Soften generated pixels until they are no sharper than the source edge (bokeh stays bokeh)."""
+    for radius in (0, 1, 2, 3, 5, 8):
+        blurred = out.filter(ImageFilter.GaussianBlur(radius)) if radius else out
+        if sharpness(blurred, area) <= target * 1.2:
+            return blurred
+    return blurred
+
+
+STEP_STRIP = 3  # px on each side of the seam used to measure a brightness step
+STEP_REACH = 0.15  # share of the window over which a step is faded out
+STEP_MAX = 20  # larger jumps are real content, corrected only up to this
+
+
+def remove_steps(img: Image.Image, known: Image.Image, horizontal: bool, skip: list[bool]) -> Image.Image:
+    """The model sometimes draws a faint line where the gray met the photo. Measure the jump
+    across each seam (per row, smoothed) and fade it out on the generated side."""
+    if not horizontal:
+        out = remove_steps(img.transpose(Image.TRANSPOSE), known.transpose(Image.TRANSPOSE), True, skip)
+        return out.transpose(Image.TRANSPOSE)
+    w, h = img.size
+    line = _axis_filled(known, True)
+    reach = max(8, round(w * STEP_REACH))
+    smooth = max(1, h // 24)
+    for b in range(1, w):
+        if line[b] == line[b - 1]:
+            continue
+        gen_left = line[b]  # known starts at b, generated pixels are on the left
+        g_col = b - 1 if gen_left else b
+        if skip[g_col]:
+            continue  # the model left this side gray; the next window fills it
+        k = STEP_STRIP
+        src_box = (b, 0, min(w, b + k), h) if gen_left else (max(0, b - k), 0, b, h)
+        gen_box = (max(0, b - k), 0, b, h) if gen_left else (b, 0, min(w, b + k), h)
+
+        def profile(box):
+            col = img.crop(box).resize((1, h), Image.BOX)
+            return col.resize((1, smooth), Image.BOX).resize((1, h), Image.BILINEAR)
+
+        src, gen = profile(src_box), profile(gen_box)
+        cap = lambda v: min(v, STEP_MAX)
+        pos, neg = ImageChops.subtract(src, gen).point(cap), ImageChops.subtract(gen, src).point(cap)
+        n = min(reach, b if gen_left else w - b)
+        ramp = Image.new("L", (n, 1))
+        ramp.putdata([round(255 * (i + 1) / n) for i in range(n)] if gen_left else [round(255 * (n - i) / n) for i in range(n)])
+        ramp = Image.merge("RGB", [ramp.resize((n, h))] * 3)
+        region = (b - n, 0, b, h) if gen_left else (b, 0, b + n, h)
+        patch = img.crop(region)
+        patch = ImageChops.add(patch, ImageChops.multiply(pos.resize((n, h)), ramp))
+        patch = ImageChops.subtract(patch, ImageChops.multiply(neg.resize((n, h)), ramp))
+        img.paste(patch, region[:2])
+    return img
+
+
 async def _fill(provider: ImageEditProvider, canvas: Image.Image, filled: Image.Image, box: tuple, ratio: str,
-                horizontal: bool) -> float:
-    """Ask the model to fill the gray part of canvas[box]; paste back only the unfilled pixels."""
+                horizontal: bool, budget: int) -> tuple[float, int]:
+    """Ask the model to fill the gray part of canvas[box]; paste back only the unfilled pixels.
+    Retries while the answer does not match the source along the seam. Returns (cost, calls)."""
     tile = canvas.crop(box)
+    known = filled.crop(box)
+    axis = tile.width if horizontal else tile.height
+    band = _seam_band(known, max(8, round(axis * SEAM_BAND)))
+    gray = known.point(lambda v: 255 - v)
     buf = io.BytesIO()
     tile.save(buf, "JPEG", quality=95)
-    res = await provider.edit(buf.getvalue(), PROMPT, ratio)
-    out = load(res.data).convert("RGB").resize(tile.size, Image.LANCZOS)
-    # Mask = unfilled area plus a 32 px ramp into filled pixels, so tone shifts of the model blend out.
-    mask = filled.crop(box).point(lambda v: 255 - v).filter(ImageFilter.BoxBlur(FEATHER)).point(lambda v: min(255, v * 2))
-    canvas.paste(out, box[:2], mask)
-    # Mark the window filled, except lines the model left gray.
-    still_gray = _gray_lines(canvas.crop(box), horizontal)
+    cost, calls, best = 0.0, 0, None
+    while calls < min(1 + RETRIES, budget):
+        res = await provider.edit(buf.getvalue(), PROMPT, ratio)
+        cost, calls = cost + res.cost_usd, calls + 1
+        out = load(res.data).convert("RGB").resize(tile.size, Image.LANCZOS)
+        # Lines the model left gray, found before colour matching shifts the gray.
+        still_gray = _gray_lines(Image.composite(tile, out, known), horizontal)
+        diff = seam_diff(tile, out, band) if band.getbbox() else 0.0
+        jump = seam_jump(out, known, horizontal, still_gray)
+        log.info("extend window %s: seam diff %.1f, jump %.1f (try %d)", box, diff, jump, calls)
+        score = max(diff / SEAM_MAX_DIFF, jump / SEAM_MAX_JUMP)
+        if best is None or score < best[0]:
+            best = (score, diff, out, still_gray)
+        if score <= 1:
+            break
+    _, diff, out, still_gray = best
+    if diff > SEAM_MAX_DIFF:
+        raise ValueError(f"AI fill does not match the source (seam diff {diff:.0f} after {calls} calls)")
+    # A seam jump alone does not fail the job: the best answer goes on, remove_steps softens it.
+    if band.getbbox():
+        out = match_colour(out, tile, band)
+        out = match_blur(out, sharpness(tile, band), gray)
+    # Mask = unfilled area plus a ramp into filled pixels; the gate above made the overlap trustworthy.
+    feather = max(16, round(axis * FEATHER / 2))
+    mask = gray.filter(ImageFilter.BoxBlur(feather)).point(lambda v: min(255, v * 2))
     done = Image.new("L", tile.size, 255)
-    for i, gray in enumerate(still_gray):
-        if gray:
-            done.paste(0, (i, 0, i + 1, tile.height) if horizontal else (0, i, tile.width, i + 1))
-    filled.paste(ImageChops.lighter(filled.crop(box), done), box[:2])
-    return res.cost_usd
+    for i, g in enumerate(still_gray):
+        if g:
+            line = (i, 0, i + 1, tile.height) if horizontal else (0, i, tile.width, i + 1)
+            done.paste(0, line)
+            mask.paste(0, line)  # keep canvas gray there: the next window fills it
+    canvas.paste(out, box[:2], mask)
+    canvas.paste(remove_steps(canvas.crop(box), known, horizontal, still_gray), box[:2])
+    filled.paste(ImageChops.lighter(known, done), box[:2])
+    return cost, calls
 
 
 def _axis_filled(filled: Image.Image, horizontal: bool) -> list[bool]:
@@ -144,8 +286,8 @@ async def extend(provider: ImageEditProvider, data: bytes, target: str) -> tuple
         if span is None:
             break
         box = (span[0], 0, span[1], canvas.height) if horizontal else (0, span[0], canvas.width, span[1])
-        cost += await _fill(provider, canvas, filled, box, ratio, horizontal)
-        calls += 1
+        c, n = await _fill(provider, canvas, filled, box, ratio, horizontal, MAX_CALLS - calls)
+        cost, calls = cost + c, calls + n
     if not all(_axis_filled(filled, horizontal)):
         raise ValueError(f"AI left gray areas after {calls} calls")
     return (canvas.crop(crop) if crop else canvas), cost, calls

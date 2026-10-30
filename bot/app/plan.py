@@ -78,6 +78,12 @@ def nearest_ai_ratio(width: int, height: int) -> str:
     return min(AI_RATIOS, key=lambda r: abs(_ratio_value(r) - target))
 
 
+def ai_ratio_fits(width: int, height: int) -> bool:
+    """True when the image model can output this ratio (within 2%), so a whole-image edit keeps framing."""
+    r = width / height
+    return abs(_ratio_value(nearest_ai_ratio(width, height)) - r) / r < 0.02
+
+
 def _pad_op(extend: str, color: str) -> dict:
     """Pad to a W:H target. Small numbers are a ratio; large ones are pixels."""
     a, b = map(int, extend.split(":"))
@@ -166,8 +172,17 @@ CROP_WORDS = ("обрез", "обреж", "кадрир", "crop", "вырез", 
 # "вертикальн"/"горизонтальн", not "вертикал"/"горизонт": «по горизонтали» names a rotation axis, not the result.
 VERTICAL_WORDS = ("вертикальн", "портрет", "9:16", "9х16", "9x16", "story", "стори", "shorts", "reels")
 HORIZONTAL_WORDS = ("горизонтальн", "ландшафт", "16:9", "16х9", "16x9", "широкоформат", "баннер")
+QUALITY_WORDS = ("качеств", "резк", "чётк", "четк", "детал", "улучш", "размыт", "шум", "пиксел", "enhance", "upscale", "апскейл")
 ROTATE_WORDS = ("поверн", "переверн", "разверн", "поворот", "rotate", "градус")
 NO_STRETCH = 0.01  # resize exact is allowed only when the ratio already matches within 1%
+
+
+def drop_unasked_enhance(plan: Plan, request: str) -> Plan:
+    """The LLM adds `enhance` to "увеличь"/"дорисуй" requests. An extra AI pass costs money and
+    re-renders the source, so it runs only when the user asked for quality."""
+    if plan.ai_op != "enhance" or any(w in request.lower() for w in QUALITY_WORDS):
+        return plan
+    return replace(plan, ai_op=None, ai_region=None, ai_prompt=None)
 
 
 def fix_stretch(plan: Plan, request: str, width: int, height: int) -> Plan:

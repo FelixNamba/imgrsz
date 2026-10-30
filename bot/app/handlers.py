@@ -14,7 +14,7 @@ from . import admin, extend, pipeline, texts
 from .config import config
 from .db import DB
 from .llm import GigaChat
-from .plan import Plan, PlanError, fix_stretch, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
+from .plan import Plan, PlanError, ai_ratio_fits, drop_unasked_enhance, fix_stretch, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
 from .providers import ImageEditProvider
 
 log = logging.getLogger(__name__)
@@ -143,7 +143,8 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
     # Stored for the admin log only; the LLM receives `request`, not this string.
     full_request = f"{job['request']}\n\nУточнение: {request}" if (is_edit and job["request"]) else request
     info = json.loads(job["image_info"])
-    plan = fix_stretch(plan, full_request, info["width"], info["height"])
+    # fix_stretch first: an AI plan (even enhance-only) gets AI extend instead of padding.
+    plan = drop_unasked_enhance(fix_stretch(plan, full_request, info["width"], info["height"]), full_request)
     size = pipeline.output_size(info["width"], info["height"], plan.ops, plan.extend)
     warn = orientation_warning(plan, full_request, size) or ratio_crop_warning(plan, full_request, info["width"], info["height"])
     if warn and warn != asked:  # ask once; the user's answer settles it
@@ -213,18 +214,30 @@ async def on_confirm(cb: CallbackQuery, bot: Bot, state: FSMContext):
         data = original = (await bot.download(job["file_id"])).read()
         cost_usd = 0.0
         ai_ratio = None
-        if plan.ai_prompt:
-            # The AI step never changes framing: its output ratio is the source ratio.
-            ai_ratio = nearest_ai_ratio(image_info["width"], image_info["height"])
+
+        async def ai_edit(data: bytes, width: int, height: int) -> bytes:
+            nonlocal cost_usd, ai_ratio
+            # The AI step never changes framing: its output ratio is the input ratio.
+            ai_ratio = nearest_ai_ratio(width, height)
             ai = await router.provider.edit(data, plan.ai_prompt, ai_ratio)
             db.add_job_cost(job_id, provider_cost_usd=ai.cost_usd)
-            cost_usd, data = ai.cost_usd, ai.data
+            cost_usd += ai.cost_usd
+            return ai.data
+
+        # AI edits are unstable, so they run last. Exception: an extended image wider than the
+        # model's ratios (21:9 / 9:16) cannot be edited as a whole; then the edit runs first.
+        ext_size = pipeline.output_size(image_info["width"], image_info["height"], [], plan.extend)
+        edit_last = bool(plan.ai_prompt and plan.extend and ai_ratio_fits(*ext_size))
+        if plan.ai_prompt and not edit_last:
+            data = await ai_edit(data, image_info["width"], image_info["height"])
         if plan.extend:
             img, ext_cost, calls = await extend.extend(router.provider, data, plan.extend)
             db.add_job_cost(job_id, provider_cost_usd=ext_cost)
             cost_usd += ext_cost
             data = pipeline.encode(img, "png").data
             db.event(uid, "extended", job_id=job_id, ratio=plan.extend, calls=calls, cost_usd=round(ext_cost, 4))
+            if edit_last:
+                data = await ai_edit(data, img.width, img.height)
         src_fmt = image_info.get("format")
         res = await asyncio.to_thread(pipeline.run, data, plan.ops, "jpeg" if src_fmt == "mpo" else src_fmt)
     except Exception as e:
