@@ -1,7 +1,8 @@
 import pytest
 
 from app.config import config
-from app.plan import PlanError, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
+from app.pipeline import output_size
+from app.plan import PlanError, fix_stretch, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
 
 
 def test_technical_price():
@@ -116,3 +117,42 @@ def test_refuse_not_actionable():
 def test_jpg_alias():
     p = parse_plan({"brief": "x", "ops": [{"op": "format", "format": "JPG"}]})
     assert p.ops[0]["format"] == "jpeg"
+
+
+def _exact(w, h):
+    return {"op": "resize", "mode": "exact", "width": w, "height": h}
+
+
+def test_ai_plan_never_stretches_extends_instead():
+    # job 14: enhance + exact 2560x1440 on a 4:3 source
+    p = fix_stretch(parse_plan({"brief": "x", "ai_op": "enhance", "ops": [_exact(2560, 1440)]}), "дорисуй", 800, 600)
+    assert p.extend == "16:9" and p.ops[0]["mode"] == "exact"
+    assert output_size(800, 600, p.ops, p.extend) == (2560, 1440)
+
+
+def test_extend_ratio_follows_final_size():
+    # job 15: extend 16:9, then exact 1080x1920
+    p = fix_stretch(parse_plan({"brief": "x", "extend": "16:9", "ops": [_exact(1080, 1920)]}), "дорисуй", 800, 600)
+    assert p.extend == "9:16"
+
+
+def test_removed_background_pads_not_extends():
+    # job 13: remove background + exact 3840x1080
+    p = fix_stretch(parse_plan({"brief": "x", "ai_op": "remove_background", "ops": [_exact(3840, 1080)]}), "без фона", 800, 600)
+    assert p.extend is None and p.ops[0]["mode"] == "pad" and p.ops[0]["color"] == "#ffffff"
+
+
+def test_technical_plan_pads_or_crops():
+    p = parse_plan({"brief": "x", "ops": [_exact(1000, 1000)]})
+    assert fix_stretch(p, "сделай 1000x1000", 800, 600).ops[0]["mode"] == "pad"
+    assert fix_stretch(p, "обрежь до 1000x1000", 800, 600).ops[0]["mode"] == "fill"
+
+
+def test_matching_ratio_untouched():
+    p = parse_plan({"brief": "x", "ops": [_exact(1600, 1200)]})
+    assert fix_stretch(p, "", 800, 600) is p
+
+
+def test_rotation_does_not_ask_orientation():
+    p = parse_plan({"brief": "x", "ops": [{"op": "rotate", "degrees": 90}]})
+    assert orientation_warning(p, "переверни её по горизонтали на 90 градусов", (600, 800)) is None

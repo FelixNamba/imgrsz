@@ -44,6 +44,7 @@ Work top to bottom and stop when it is fixed.
    - OOM (`dmesg | tail`) → check `free -h` and swap; `mem_limit` is in compose.
 5. **Reachability:** `$SSH 'bash -s' < scripts/check_access.sh`. `000` means blocked. Escalate to the provider or switch the image provider.
 6. **Rollback:** `$SSH "cd /opt/imgrsz && git log --oneline -5 && git checkout <good_sha> && $DC up -d --build"`.
+   **Fast bot rollback (~10 s, no rebuild):** `$SSH "cd /opt/imgrsz && docker tag imgrsz-bot:v1 imgrsz-bot:latest && $DC up -d --no-build bot"`. `imgrsz-bot:v1` = git tag `bot-v1` (bot before the 2026-10-30 plan fix); DB snapshot `/root/backups/before-bot-v2-2026-10-30-0443.sqlite`. Then `git checkout bot-v1` on the server so the next `--build` does not undo it.
 7. **Restore DB** (only if corrupted): `$DC stop bot && cp /root/backups/imgrsz-<date>.sqlite data/imgrsz.sqlite && $DC start bot`.
 
 ## 4. Migration to a new server

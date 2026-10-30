@@ -14,7 +14,7 @@ from . import admin, extend, pipeline, texts
 from .config import config
 from .db import DB
 from .llm import GigaChat
-from .plan import Plan, PlanError, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
+from .plan import Plan, PlanError, fix_stretch, nearest_ai_ratio, orientation_warning, parse_plan, ratio_crop_warning
 from .providers import ImageEditProvider
 
 log = logging.getLogger(__name__)
@@ -127,10 +127,11 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
         await msg.answer(texts.TOO_MANY_EDITS)
         return
     prev = json.loads(job["plan"]) if (is_edit and job["plan"]) else None
+    asked = None
     if prev:
         prev.pop("ai_prompt", None)  # rendered in code; the LLM only picks ai_op
         prev.pop("ai_ratio", None)  # legacy field
-        prev.pop("question", None)  # the bot's own clarification, not part of the plan
+        asked = prev.pop("question", None)  # the bot's own clarification, not part of the plan
     wait = await msg.answer(texts.THINKING)
     try:
         plan, tokens = await router.llm.make_plan(json.loads(job["image_info"]), request, prev)
@@ -142,9 +143,10 @@ async def make_brief(msg: Message, state: FSMContext, job_id: int, request: str,
     # Stored for the admin log only; the LLM receives `request`, not this string.
     full_request = f"{job['request']}\n\nУточнение: {request}" if (is_edit and job["request"]) else request
     info = json.loads(job["image_info"])
+    plan = fix_stretch(plan, full_request, info["width"], info["height"])
     size = pipeline.output_size(info["width"], info["height"], plan.ops, plan.extend)
     warn = orientation_warning(plan, full_request, size) or ratio_crop_warning(plan, full_request, info["width"], info["height"])
-    if warn:
+    if warn and warn != asked:  # ask once; the user's answer settles it
         plan = replace(plan, question=warn)
     db.update_job(job_id, request=full_request, plan=json.dumps(plan.to_dict(), ensure_ascii=False), iterations=job["iterations"] + 1)
     db.add_job_cost(job_id, llm_tokens=tokens)

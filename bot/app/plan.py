@@ -3,8 +3,9 @@
 The LLM never calls tools directly. It returns JSON; we accept only allow-listed
 ops with typed, clamped params (anti prompt injection by construction).
 """
+import math
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 from . import prompts
 from .config import config
@@ -162,8 +163,43 @@ class Plan:
 
 
 CROP_WORDS = ("обрез", "обреж", "кадрир", "crop", "вырез", "отрез", "среза", "убрать края", "по краям")
-VERTICAL_WORDS = ("вертикал", "портрет", "9:16", "9х16", "9x16", "story", "стори", "shorts", "reels")
-HORIZONTAL_WORDS = ("горизонт", "ландшафт", "16:9", "16х9", "16x9", "широкоформат", "баннер")
+# "вертикальн"/"горизонтальн", not "вертикал"/"горизонт": «по горизонтали» names a rotation axis, not the result.
+VERTICAL_WORDS = ("вертикальн", "портрет", "9:16", "9х16", "9x16", "story", "стори", "shorts", "reels")
+HORIZONTAL_WORDS = ("горизонтальн", "ландшафт", "16:9", "16х9", "16x9", "широкоформат", "баннер")
+ROTATE_WORDS = ("поверн", "переверн", "разверн", "поворот", "rotate", "градус")
+NO_STRETCH = 0.01  # resize exact is allowed only when the ratio already matches within 1%
+
+
+def fix_stretch(plan: Plan, request: str, width: int, height: int) -> Plan:
+    """The executor never stretches. A resize exact to another ratio becomes a crop (the user
+    asked to crop), AI extend (AI plans without background removal) or padding (everything else)."""
+    if plan.question or plan.refuse:
+        return plan
+    from .pipeline import output_size
+
+    ops, extend, note = list(plan.ops), plan.extend, None
+    crop = any(w in request.lower() for w in CROP_WORDS)
+    for i, op in enumerate(ops):
+        if op["op"] != "resize" or op["mode"] != "exact":
+            continue
+        w, h = output_size(width, height, ops[:i], extend)
+        target = op["width"] / op["height"]
+        if abs(w / h - target) / target < NO_STRETCH:
+            continue
+        geometry_before = any(o["op"] in ("crop_ratio", "pad_ratio", "resize", "rotate", "print_size") for o in ops[:i])
+        if crop:
+            ops[i] = {**op, "mode": "fill"}
+            note = "Лишнее по краям обрежется, растягивать не будем."
+        elif plan.is_ai and plan.ai_op != "remove_background" and not geometry_before:
+            g = math.gcd(op["width"], op["height"])
+            extend = f"{op['width'] // g}:{op['height'] // g}"
+            note = "Недостающие края дорисует ИИ, растягивать не будем."
+        else:
+            ops[i] = {**op, "mode": "pad", "color": plan.ai_target or "#ffffff"}
+            note = "Пропорция другая: добавим однотонные поля, растягивать не будем."
+    if note is None:
+        return plan
+    return replace(plan, ops=ops, extend=extend, brief=f"{plan.brief}\n{note}")
 
 
 def ratio_crop_warning(plan: Plan, request: str, width: int, height: int) -> str | None:
@@ -190,6 +226,8 @@ def orientation_warning(plan: Plan, request: str, size: tuple[int, int]) -> str 
     if plan.question or plan.refuse:
         return None
     text = request.lower()
+    if any(o["op"] == "rotate" for o in plan.ops) or any(w in text for w in ROTATE_WORDS):
+        return None  # a rotation changes orientation on purpose
     vertical = any(w in text for w in VERTICAL_WORDS)
     horizontal = any(w in text for w in HORIZONTAL_WORDS)
     if vertical == horizontal:
