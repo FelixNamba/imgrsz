@@ -20,6 +20,8 @@ details p { margin: 0 0 10px; }
 details ul { margin: 0 0 10px; padding-left: 20px; }
 details li { margin-bottom: 6px; }
 details code { background: var(--bg); padding: 1px 6px; border-radius: 6px; font-size: 13px; }
+details pre.json { background: var(--bg); border-radius: 12px; padding: 12px 14px; overflow-x: auto; }
+details pre.json code { padding: 0; background: none; }
 details table { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 14px; }
 details th, details td { text-align: left; padding: 8px 6px; border-bottom: 1px solid var(--line); }
 .formula { background: var(--bg); border-radius: 12px; padding: 12px 14px; font-weight: 600; }
@@ -31,3 +33,9 @@ details th, details td { text-align: left; padding: 8px 6px; border-bottom: 1px 
   .stats .stat:first-child { grid-column: span 2; }
   summary { font-size: 22px; }
 }
+.zoom { display: block; width: 100%; padding: 0; border: 0; background: none; cursor: zoom-in; }
+.zoom img { display: block; width: 100%; height: auto; }
+.lightbox { width: 100vw; height: 100vh; max-width: none; max-height: none; margin: 0; padding: 16px; border: 0; background: rgba(0, 0, 0, .88); cursor: zoom-out; box-sizing: border-box; }
+.lightbox[open] { display: grid; place-items: center; }
+.lightbox img { max-width: 100%; max-height: 100%; width: auto; height: auto; background: #fff; border-radius: 12px; }
+.lightbox::backdrop { background: rgba(0, 0, 0, .6); }
