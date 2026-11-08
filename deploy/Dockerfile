@@ -6,4 +6,5 @@ COPY bot/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY deploy/certs/ /app/certs/
 COPY bot/app/ /app/app/
+COPY web/ /app/web/
 CMD ["python", "-m", "app.main"]

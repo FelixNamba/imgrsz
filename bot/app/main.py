@@ -9,10 +9,12 @@ from aiogram.enums import ParseMode
 
 from . import admin, handlers
 from .analytics import export_stats
+from .backup import backup_loop
 from .config import config
 from .db import DB
 from .llm import GigaChat
 from .providers import get_provider
+from .web import start_web
 
 log = logging.getLogger("imgrsz")
 
@@ -35,6 +37,8 @@ async def run_bot():
     dp = Dispatcher()
     dp.include_router(handlers.router)
     asyncio.create_task(stats_loop(db))
+    asyncio.create_task(backup_loop())
+    web_runner = await start_web()
     log.info("bot started: provider=%s model=%s admin_bot=%s", config.image_provider, config.gigachat_model, bool(admin_bot))
     polls = [dp.start_polling(bot)]
     if admin_bot:
